@@ -1,6 +1,12 @@
 ---
 name: agent-reviews
-description: Review and fix PR review bot findings on current PR, loop until resolved
+description: Review and fix PR review bot findings on current PR, loop until resolved. Fetches unanswered bot comments, evaluates each finding, fixes real bugs, dismisses false positives, and replies to every comment with the outcome.
+license: MIT
+compatibility: Requires git and gh (GitHub CLI) installed. Designed for Claude Code.
+metadata:
+  author: pbakaus
+  version: "0.3.1"
+  homepage: https://github.com/pbakaus/agent-reviews
 allowed-tools: Bash(node scripts/agent-reviews.js *), Bash(gh *), Bash(git *), Read, Glob, Grep, Edit, Write, AskUserQuestion, Task, TaskOutput
 ---
 
