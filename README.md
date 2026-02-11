@@ -12,17 +12,26 @@ PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) leave inline comments 
 npm install -g agent-reviews
 ```
 
-### Claude Code skill
+### Agent Skill
 
-Install as a skill for the full automated workflow (no npm install required):
+Installs the full automated workflow as a slash command (no npm install required).
+
+**Agent-agnostic** (works with any agent that supports [Agent Skills](https://agentskills.io)):
 
 ```bash
 npx skills add pbakaus/agent-reviews@agent-reviews
 ```
 
-This registers the `/agent-reviews` slash command. When invoked, it uses `npx` to auto-download the CLI on first run.
+**Claude Code plugin**:
 
-> You can also use both: install the CLI globally for direct terminal use, and the skill for the Claude Code workflow.
+```
+/plugin marketplace add pbakaus/agent-reviews
+/plugin install agent-reviews@agent-reviews
+```
+
+Both register the `/agent-reviews` command. The skill bundles its own scripts, so nothing is downloaded at runtime.
+
+> You can also use both: install the CLI globally for direct terminal use, and the skill for the agent workflow.
 
 ## Authentication
 
