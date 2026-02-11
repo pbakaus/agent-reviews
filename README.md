@@ -18,22 +18,30 @@ npm install -g agent-reviews
 brew install agent-reviews
 ```
 
-### Claude Code plugin
+### Claude Code skill
 
-Install as a plugin for the full automated workflow — no npm install required:
+Install as a skill for the full automated workflow — no npm install required:
 
-```
-/plugin marketplace add pbakaus/agent-reviews
-/plugin install agent-reviews@agent-reviews
+```bash
+npx skills add https://github.com/pbakaus/agent-reviews --skill agent-reviews
 ```
 
 This registers the `/agent-reviews` slash command. When invoked, it uses `npx` to auto-download the CLI on first run.
 
-> You can also use both: install the CLI globally for direct terminal use, and the plugin for the Claude Code workflow.
+> You can also use both: install the CLI globally for direct terminal use, and the skill for the Claude Code workflow.
 
 ## Authentication
 
-Resolves a GitHub token automatically:
+The primary authentication method is the **GitHub CLI** — if you're logged in with `gh auth login`, agent-reviews picks up the token automatically. No configuration needed.
+
+For environments where `gh` isn't available (such as Claude Code Cloud, which routes git through an HTTPS proxy), agent-reviews falls back to:
+
+1. `GITHUB_TOKEN` environment variable
+2. `.env.local` in the repo root
+
+The proxy environment is also why agent-reviews includes [undici](https://github.com/nodejs/undici) `ProxyAgent` support — when `HTTPS_PROXY` is set, GitHub API requests are routed through it automatically.
+
+**Resolution order** (first match wins):
 
 1. `GITHUB_TOKEN` environment variable
 2. `.env.local` in the repo root
@@ -83,7 +91,7 @@ agent-reviews --pr 42
 | `--interval <sec>` | `-i` | Poll interval in seconds (default: 30) |
 | `--timeout <sec>` | | Inactivity timeout in seconds (default: 600) |
 
-## Claude Code Plugin
+## Claude Code Skill
 
 The `/agent-reviews` skill automates the full PR review bot workflow:
 
@@ -138,10 +146,6 @@ Each comment displays its reply status:
 ### Watch mode
 
 Polls the GitHub API at a configurable interval and reports new comments as they appear. Outputs both formatted text and JSON for AI agent consumption. Exits automatically after a configurable inactivity timeout (default: 10 minutes).
-
-## Proxy support
-
-For corporate or cloud environments, set `HTTPS_PROXY` and requests will be routed through it using [undici](https://github.com/nodejs/undici) ProxyAgent (falls back to native fetch if undici is unavailable).
 
 ## License
 
