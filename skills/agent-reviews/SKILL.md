@@ -7,7 +7,7 @@ metadata:
   author: pbakaus
   version: "0.3.1"
   homepage: https://github.com/pbakaus/agent-reviews
-allowed-tools: Bash(node scripts/agent-reviews.js *), Bash(gh *), Bash(git *), Read, Glob, Grep, Edit, Write, AskUserQuestion, Task, TaskOutput
+allowed-tools: Bash(scripts/agent-reviews.js *), Bash(gh *), Bash(git *), Read, Glob, Grep, Edit, Write, AskUserQuestion, Task, TaskOutput
 ---
 
 Automatically review, fix, and respond to findings from PR review bots on the current PR. Uses a deterministic two-phase workflow: first fix all existing issues, then poll once for new ones.
@@ -25,7 +25,7 @@ If no PR exists, notify the user and exit.
 ### Step 2: Fetch All Bot Comments
 
 ```bash
-node scripts/agent-reviews.js --bots-only --unanswered
+scripts/agent-reviews.js --bots-only --unanswered
 ```
 
 This shows only unanswered bot comments. Each comment shows its ID in brackets (e.g., `[12345678]`), the author, file path, and a truncated body.
@@ -39,7 +39,7 @@ For each comment where `hasAnyReply === false`:
 #### A. Get Full Detail
 
 ```bash
-node scripts/agent-reviews.js --detail <comment_id>
+scripts/agent-reviews.js --detail <comment_id>
 ```
 
 This shows the full comment body (no truncation), the diff hunk (code context), and all replies. Use this instead of `gh` CLI for comment details.
@@ -104,21 +104,21 @@ Now that the commit hash exists, reply to every processed comment:
 
 **For each TRUE POSITIVE:**
 ```bash
-node scripts/agent-reviews.js --reply <comment_id> "Fixed in {hash}.
+scripts/agent-reviews.js --reply <comment_id> "Fixed in {hash}.
 
 {Brief description of the fix}"
 ```
 
 **For each FALSE POSITIVE:**
 ```bash
-node scripts/agent-reviews.js --reply <comment_id> "Won't fix: {reason}
+scripts/agent-reviews.js --reply <comment_id> "Won't fix: {reason}
 
 {Explanation of why this is intentional or not applicable}"
 ```
 
 **For each SKIPPED:**
 ```bash
-node scripts/agent-reviews.js --reply <comment_id> "Skipped per user request"
+scripts/agent-reviews.js --reply <comment_id> "Skipped per user request"
 ```
 
 **DO NOT start Phase 2 until all replies are posted.**
@@ -132,7 +132,7 @@ node scripts/agent-reviews.js --reply <comment_id> "Skipped per user request"
 Launch the watcher in the background. It polls every 30 seconds and exits after 10 minutes of inactivity (no new comments):
 
 ```bash
-node scripts/agent-reviews.js --watch --bots-only
+scripts/agent-reviews.js --watch --bots-only
 ```
 
 This runs as a background task.
