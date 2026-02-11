@@ -18,17 +18,18 @@ npm install -g agent-reviews
 brew install agent-reviews
 ```
 
-### Claude Code skill
+### Claude Code plugin
 
-Install as a skill for the full automated workflow — no npm install required:
+Install as a plugin for the full automated workflow — no npm install required:
 
-```bash
-npx skills add pbakaus/agent-reviews
+```
+/plugin marketplace add pbakaus/agent-reviews
+/plugin install agent-reviews@agent-reviews
 ```
 
 This registers the `/agent-reviews` slash command. When invoked, it uses `npx` to auto-download the CLI on first run.
 
-> You can also use both: install the CLI globally for direct terminal use, and the skill for the Claude Code workflow.
+> You can also use both: install the CLI globally for direct terminal use, and the plugin for the Claude Code workflow.
 
 ## Authentication
 
@@ -82,7 +83,7 @@ agent-reviews --pr 42
 | `--interval <sec>` | `-i` | Poll interval in seconds (default: 30) |
 | `--timeout <sec>` | | Inactivity timeout in seconds (default: 600) |
 
-## Claude Code Skill
+## Claude Code Plugin
 
 The `/agent-reviews` skill automates the full PR review bot workflow:
 

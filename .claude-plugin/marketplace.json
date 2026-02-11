@@ -1,7 +1,16 @@
 {
   "name": "agent-reviews",
-  "description": "Manage GitHub PR review comments from Claude Code. Automatically triage, fix, and respond to bot findings.",
-  "version": "0.1.0",
-  "author": "Paul Bakaus",
-  "homepage": "https://github.com/pbakaus/agent-reviews"
+  "owner": {
+    "name": "Paul Bakaus"
+  },
+  "metadata": {
+    "description": "CLI and Claude Code skill for managing GitHub PR review comments"
+  },
+  "plugins": [
+    {
+      "name": "agent-reviews",
+      "source": "./",
+      "description": "Manage GitHub PR review comments — list, filter, reply, and watch for bot findings"
+    }
+  ]
 }
