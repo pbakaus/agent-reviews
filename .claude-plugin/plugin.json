@@ -1,7 +1,7 @@
 {
   "name": "agent-reviews",
   "description": "Manage GitHub PR review comments from Claude Code. Automatically triage, fix, and respond to bot findings.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": {
     "name": "Paul Bakaus",
     "url": "https://github.com/pbakaus"
