@@ -2,7 +2,7 @@
 
 Manage GitHub PR review comments from the terminal and from AI coding agents.
 
-PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) leave inline comments on your pull requests. agent-reviews gives you a CLI to list, filter, reply to, and watch those comments — plus a Claude Code skill that automates the entire triage-fix-reply loop.
+PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) leave inline comments on your pull requests. agent-reviews gives you a CLI to list, filter, reply to, and watch those comments, plus a Claude Code skill that automates the entire triage-fix-reply loop.
 
 ## Install
 
@@ -14,7 +14,7 @@ npm install -g agent-reviews
 
 ### Claude Code skill
 
-Install as a skill for the full automated workflow — no npm install required:
+Install as a skill for the full automated workflow (no npm install required):
 
 ```bash
 npx skills add pbakaus/agent-reviews@agent-reviews
@@ -26,14 +26,14 @@ This registers the `/agent-reviews` slash command. When invoked, it uses `npx` t
 
 ## Authentication
 
-The primary authentication method is the **GitHub CLI** — if you're logged in with `gh auth login`, agent-reviews picks up the token automatically. No configuration needed.
+The primary authentication method is the **GitHub CLI**. If you're logged in with `gh auth login`, agent-reviews picks up the token automatically. No configuration needed.
 
-For environments where `gh` isn't available (such as Claude Code Cloud, which routes git through an HTTPS proxy), agent-reviews falls back to:
+For environments where `gh` isn't available (like Claude Code Cloud, which routes git through an HTTPS proxy), agent-reviews falls back to:
 
 1. `GITHUB_TOKEN` environment variable
 2. `.env.local` in the repo root
 
-The proxy environment is also why agent-reviews includes [undici](https://github.com/nodejs/undici) `ProxyAgent` support — when `HTTPS_PROXY` is set, GitHub API requests are routed through it automatically.
+The proxy environment is also why agent-reviews includes [undici](https://github.com/nodejs/undici) `ProxyAgent` support. When `HTTPS_PROXY` is set, GitHub API requests are routed through it automatically.
 
 **Resolution order** (first match wins):
 
@@ -90,7 +90,7 @@ agent-reviews --pr 42
 The `/agent-reviews` skill automates the full PR review bot workflow:
 
 1. Fetch all unanswered bot comments via `npx agent-reviews --bots-only --json`
-2. Evaluate each finding — true positive, false positive, or uncertain
+2. Evaluate each finding (true positive, false positive, or uncertain)
 3. Fix real bugs and run lint/type-check
 4. Dismiss false positives with an explanation
 5. Reply to every comment with the outcome
@@ -99,8 +99,8 @@ The `/agent-reviews` skill automates the full PR review bot workflow:
 
 ### Skill behavior
 
-- **True positives** get fixed, verified, and replied with `✅ Fixed in {commit}`
-- **False positives** get replied with `⚠️ Won't fix — {reason}`
+- **True positives** get fixed, verified, and replied with `Fixed in {commit}`
+- **False positives** get replied with `Won't fix: {reason}`
 - **Uncertain findings** prompt the user via `AskUserQuestion`
 - All fixes are batched into a single commit before polling begins
 - Watch mode runs for up to 10 minutes, processing any new findings
@@ -133,9 +133,9 @@ Each comment displays its reply status:
 
 | Status | Meaning |
 |--------|---------|
-| `○ no reply` | No one has replied |
-| `✓ replied` | A human has replied |
-| `⚡ bot replied` | Only bots have replied |
+| `no reply` | No one has replied |
+| `replied` | A human has replied |
+| `bot replied` | Only bots have replied |
 
 ### Watch mode
 
