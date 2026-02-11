@@ -131,6 +131,40 @@ function isBot(username) {
 }
 
 // ---------------------------------------------------------------------------
+// Body cleanup
+// ---------------------------------------------------------------------------
+
+/**
+ * Strip bot boilerplate from comment bodies:
+ *  - HTML comments (<!-- ... -->)
+ *  - Cursor "Fix in Cursor" / "Fix in Web" button blocks
+ *  - "Additional Locations" <details> blocks
+ *  - Collapse leftover blank lines
+ */
+function cleanBody(body) {
+  if (!body) return body;
+
+  let cleaned = body;
+
+  // Remove HTML comments (single and multi-line)
+  cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, "");
+
+  // Remove <details> blocks containing "Additional Locations"
+  cleaned = cleaned.replace(
+    /<details>\s*<summary>\s*Additional Locations[\s\S]*?<\/details>/gi,
+    ""
+  );
+
+  // Remove <p> blocks containing cursor.com links
+  cleaned = cleaned.replace(/<p>\s*<a [^>]*cursor\.com[\s\S]*?<\/p>/gi, "");
+
+  // Collapse runs of 3+ newlines into 2
+  cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+
+  return cleaned.trim();
+}
+
+// ---------------------------------------------------------------------------
 // Processing
 // ---------------------------------------------------------------------------
 
@@ -148,7 +182,7 @@ function processComments(data, options = {}) {
       repliesMap.get(comment.in_reply_to_id).push({
         id: comment.id,
         user: comment.user?.login,
-        body: comment.body,
+        body: cleanBody(comment.body),
         createdAt: comment.created_at,
         isBot: isBot(comment.user?.login),
       });
@@ -174,7 +208,7 @@ function processComments(data, options = {}) {
       path: comment.path,
       line: comment.line || comment.original_line,
       diffHunk: comment.diff_hunk || null,
-      body: comment.body,
+      body: cleanBody(comment.body),
       createdAt: comment.created_at,
       updatedAt: comment.updated_at,
       url: comment.html_url,
@@ -197,7 +231,7 @@ function processComments(data, options = {}) {
       path: null,
       line: null,
       diffHunk: null,
-      body: comment.body,
+      body: cleanBody(comment.body),
       createdAt: comment.created_at,
       updatedAt: comment.updated_at,
       url: comment.html_url,
@@ -221,7 +255,7 @@ function processComments(data, options = {}) {
       path: null,
       line: null,
       diffHunk: null,
-      body: review.body,
+      body: cleanBody(review.body),
       state: review.state,
       createdAt: review.submitted_at,
       updatedAt: review.submitted_at,
@@ -330,5 +364,6 @@ module.exports = {
   replyToComment,
   isBot,
   isMetaComment,
+  cleanBody,
   DEFAULT_META_FILTERS,
 };
