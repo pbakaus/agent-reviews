@@ -12,12 +12,6 @@ PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) leave inline comments 
 npm install -g agent-reviews
 ```
 
-### CLI (Homebrew)
-
-```bash
-brew install agent-reviews
-```
-
 ### Claude Code skill
 
 Install as a skill for the full automated workflow — no npm install required:
