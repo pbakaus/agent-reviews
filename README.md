@@ -23,7 +23,7 @@ brew install agent-reviews
 Install as a skill for the full automated workflow — no npm install required:
 
 ```bash
-npx skills add https://github.com/pbakaus/agent-reviews --skill agent-reviews
+npx skills add pbakaus/agent-reviews@agent-reviews
 ```
 
 This registers the `/agent-reviews` slash command. When invoked, it uses `npx` to auto-download the CLI on first run.
