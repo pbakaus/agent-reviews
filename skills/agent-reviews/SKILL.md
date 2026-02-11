@@ -1,7 +1,7 @@
 ---
 name: agent-reviews
 description: Review and fix PR review bot findings on current PR, loop until resolved
-allowed-tools: Bash(npx -y agent-reviews *), Bash(npx agent-reviews *), Bash(gh *), Bash(git *), Read, Glob, Grep, Edit, Write, AskUserQuestion, Task, TaskOutput
+allowed-tools: Bash(node scripts/agent-reviews.js *), Bash(gh *), Bash(git *), Read, Glob, Grep, Edit, Write, AskUserQuestion, Task, TaskOutput
 ---
 
 Automatically review, fix, and respond to findings from PR review bots on the current PR. Uses a deterministic two-phase workflow: first fix all existing issues, then poll once for new ones.
@@ -19,7 +19,7 @@ If no PR exists, notify the user and exit.
 ### Step 2: Fetch All Bot Comments
 
 ```bash
-npx -y agent-reviews --bots-only --json
+node scripts/agent-reviews.js --bots-only --json
 ```
 
 Parse the JSON output. Count how many have `hasAnyReply: false` (unanswered).
@@ -33,14 +33,14 @@ For each comment where `hasAnyReply === false`:
 #### A. Get Full Detail
 
 ```bash
-npx -y agent-reviews --detail <comment_id>
+node scripts/agent-reviews.js --detail <comment_id>
 ```
 
 This shows the full comment body (no truncation), the diff hunk (code context), and all replies. Use this instead of `gh` CLI for comment details.
 
 For structured data, use:
 ```bash
-npx -y agent-reviews --detail <comment_id> --json
+node scripts/agent-reviews.js --detail <comment_id> --json
 ```
 
 #### B. Evaluate the Finding
@@ -79,7 +79,7 @@ Read the referenced code and determine:
 2. Run type-check and lint to verify the fix
 3. Reply to the comment:
    ```bash
-   npx -y agent-reviews --reply <comment_id> "✅ **Fixed in commit {hash}**
+   node scripts/agent-reviews.js --reply <comment_id> "✅ **Fixed in commit {hash}**
 
    {Brief description of the fix}"
    ```
@@ -88,14 +88,14 @@ Read the referenced code and determine:
 1. Do NOT change the code
 2. Reply to the comment:
    ```bash
-   npx -y agent-reviews --reply <comment_id> "⚠️ **Won't fix - {reason}**
+   node scripts/agent-reviews.js --reply <comment_id> "⚠️ **Won't fix - {reason}**
 
    {Explanation of why this is intentional or not applicable}"
    ```
 
 **If user chose to skip:**
 ```bash
-npx -y agent-reviews --reply <comment_id> "⏭️ Skipped per user request"
+node scripts/agent-reviews.js --reply <comment_id> "⏭️ Skipped per user request"
 ```
 
 ### Step 4: Commit and Push
@@ -123,7 +123,7 @@ After processing ALL unanswered comments (not one at a time):
 Launch the watcher in the background. It polls every 30 seconds and exits after 10 minutes of inactivity (no new comments):
 
 ```bash
-npx -y agent-reviews --watch --bots-only
+node scripts/agent-reviews.js --watch --bots-only
 ```
 
 This runs as a background task.
