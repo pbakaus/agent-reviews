@@ -1,7 +1,7 @@
 {
   "name": "agent-reviews",
-  "version": "0.1.0",
-  "description": "CLI and Claude Code skill for managing GitHub PR review comments — list, filter, reply, and watch for bot findings",
+  "version": "0.2.0",
+  "description": "CLI and Claude Code skill for managing GitHub PR review comments. List, filter, reply, and watch for bot findings.",
   "license": "MIT",
   "author": "Paul Bakaus",
   "repository": {
