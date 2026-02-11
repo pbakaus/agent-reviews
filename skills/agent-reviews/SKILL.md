@@ -72,35 +72,19 @@ Read the referenced code and determine:
 - Multiple valid interpretations exist
 - The fix could have unintended side effects
 
-#### C. Handle Based on Evaluation
+#### C. Act on Evaluation
 
-**If TRUE POSITIVE:**
-1. Fix the code
-2. Run type-check and lint to verify the fix
-3. Reply to the comment:
-   ```bash
-   node scripts/agent-reviews.js --reply <comment_id> "✅ **Fixed in commit {hash}**
+**If TRUE POSITIVE:** Fix the code. Track the comment ID and a brief description of the fix.
 
-   {Brief description of the fix}"
-   ```
+**If FALSE POSITIVE:** Do NOT change the code. Track the comment ID and the reason it's not a real bug.
 
-**If FALSE POSITIVE:**
-1. Do NOT change the code
-2. Reply to the comment:
-   ```bash
-   node scripts/agent-reviews.js --reply <comment_id> "⚠️ **Won't fix - {reason}**
+**If UNCERTAIN:** Use `AskUserQuestion`. If the user says skip, track it as skipped.
 
-   {Explanation of why this is intentional or not applicable}"
-   ```
-
-**If user chose to skip:**
-```bash
-node scripts/agent-reviews.js --reply <comment_id> "⏭️ Skipped per user request"
-```
+Do NOT reply to comments yet. Replies happen after the commit (Step 5).
 
 ### Step 4: Commit and Push
 
-After processing ALL unanswered comments (not one at a time):
+After evaluating and fixing ALL unanswered comments:
 
 1. Run your project's lint and type-check
 2. Stage, commit, and push:
@@ -111,14 +95,38 @@ After processing ALL unanswered comments (not one at a time):
    {List of bugs fixed, grouped by bot}"
    git push
    ```
+3. Capture the commit hash from the output.
 
-**DO NOT start Phase 2 until all current issues are fixed and pushed.**
+### Step 5: Reply to All Comments
+
+Now that the commit hash exists, reply to every processed comment:
+
+**For each TRUE POSITIVE:**
+```bash
+node scripts/agent-reviews.js --reply <comment_id> "Fixed in {hash}.
+
+{Brief description of the fix}"
+```
+
+**For each FALSE POSITIVE:**
+```bash
+node scripts/agent-reviews.js --reply <comment_id> "Won't fix: {reason}
+
+{Explanation of why this is intentional or not applicable}"
+```
+
+**For each SKIPPED:**
+```bash
+node scripts/agent-reviews.js --reply <comment_id> "Skipped per user request"
+```
+
+**DO NOT start Phase 2 until all replies are posted.**
 
 ---
 
 ## Phase 2: POLL FOR NEW COMMENTS (10-minute inactivity timeout)
 
-### Step 5: Start Watcher
+### Step 6: Start Watcher
 
 Launch the watcher in the background. It polls every 30 seconds and exits after 10 minutes of inactivity (no new comments):
 
@@ -130,14 +138,14 @@ This runs as a background task.
 
 **CRITICAL: DO NOT cancel the background task early. Let it complete its full cycle.**
 
-### Step 6: Wait for Results
+### Step 7: Wait for Results
 
 Use `TaskOutput` to wait for the watcher to complete (blocks up to 12 minutes).
 
-### Step 7: Process New Comments (if any)
+### Step 8: Process New Comments (if any)
 
 If the watcher found new comments:
-1. Process them exactly as in Phase 1, Steps 3-4
+1. Process them exactly as in Phase 1, Steps 3-5
 2. Use `--detail <id>` to read each new comment
 
 If no new comments were found, move to the summary.
