@@ -152,7 +152,9 @@ function formatOutput(comments, options) {
   }
 
   const header = `${colors.bright}Found ${comments.length} comment${comments.length === 1 ? "" : "s"}${colors.reset}\n`;
-  const formatted = comments.map((c) => formatComment(c)).join("\n\n");
+  const formatter = options.expanded ? formatDetailedComment : formatComment;
+  const separator = options.expanded ? "\n\n" + "=".repeat(60) + "\n\n" : "\n\n";
+  const formatted = comments.map((c) => formatter(c)).join(separator);
 
   return `${header}\n${formatted}`;
 }

@@ -63,6 +63,7 @@ function parseArgs() {
     detail: null,
     help: false,
     version: false,
+    expanded: false,
     watch: false,
     watchInterval: 30,
     watchTimeout: 600,
@@ -118,6 +119,10 @@ function parseArgs() {
       case "--timeout":
         result.watchTimeout = Number.parseInt(args[++i], 10);
         break;
+      case "--expanded":
+      case "-e":
+        result.expanded = true;
+        break;
       case "--help":
       case "-h":
         result.help = true;
@@ -146,6 +151,7 @@ ${colors.bright}Usage:${colors.reset}
   agent-reviews --unanswered           List comments without replies
   agent-reviews --reply <id> "msg"     Reply to a specific comment
   agent-reviews --detail <id>          Show full detail for a comment
+  agent-reviews --expanded             Show full detail for each comment
   agent-reviews --watch                Watch for new comments (poll mode)
   agent-reviews --json                 Output as JSON for scripting
 
@@ -158,6 +164,7 @@ ${colors.bright}Options:${colors.reset}
   -j, --json         Output as JSON instead of formatted text
   -b, --bots-only    Only show comments from bots
   -H, --humans-only  Only show comments from humans
+  -e, --expanded     Show full detail (body, diff hunk, replies) for each comment
   -h, --help         Show this help
   -v, --version      Show version
 
@@ -170,6 +177,7 @@ ${colors.bright}Examples:${colors.reset}
   agent-reviews                              # Show all comments
   agent-reviews -u                           # Show unresolved only
   agent-reviews -a --bots-only               # Unanswered bot comments
+  agent-reviews -a --bots-only --expanded    # Full detail for unanswered bot comments
   agent-reviews --reply 12345 "Fixed!"       # Reply to comment #12345
   agent-reviews --detail 12345               # Full detail for a comment
   agent-reviews --detail 12345 --json        # Detail as JSON
@@ -320,7 +328,7 @@ async function main() {
   const options = parseArgs();
 
   if (options.version) {
-    console.log("0.4.0");
+    console.log("0.5.0");
     process.exit(0);
   }
 

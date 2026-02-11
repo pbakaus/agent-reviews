@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires git and gh (GitHub CLI) installed. Designed for Claude Code.
 metadata:
   author: pbakaus
-  version: "0.4.0"
+  version: "0.5.0"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
@@ -21,29 +21,21 @@ gh pr view --json number,url,headRefName
 
 If no PR exists, notify the user and exit.
 
-### Step 2: Fetch All Bot Comments
+### Step 2: Fetch All Bot Comments (Expanded)
 
 ```bash
-scripts/agent-reviews.js --bots-only --unanswered
+scripts/agent-reviews.js --bots-only --unanswered --expanded
 ```
 
-This shows only unanswered bot comments. Each comment shows its ID in brackets (e.g., `[12345678]`), the author, file path, and a truncated body.
+This shows only unanswered bot comments with full detail: complete comment body (no truncation), diff hunk (code context), and all replies. Each comment shows its ID in brackets (e.g., `[12345678]`).
 
 If zero comments are returned, print "No unanswered bot comments found" and skip to Phase 2.
 
 ### Step 3: Process Each Unanswered Comment
 
-For each comment where `hasAnyReply === false`:
+For each comment from the expanded output:
 
-#### A. Get Full Detail
-
-```bash
-scripts/agent-reviews.js --detail <comment_id>
-```
-
-This shows the full comment body (no truncation), the diff hunk (code context), and all replies. Use this instead of `gh` CLI for comment details.
-
-#### B. Evaluate the Finding
+#### A. Evaluate the Finding
 
 Read the referenced code and determine:
 
@@ -72,7 +64,7 @@ Read the referenced code and determine:
 - Multiple valid interpretations exist
 - The fix could have unintended side effects
 
-#### C. Act on Evaluation
+#### B. Act on Evaluation
 
 **If TRUE POSITIVE:** Fix the code. Track the comment ID and a brief description of the fix.
 
@@ -145,8 +137,8 @@ Use `TaskOutput` to wait for the watcher to complete (blocks up to 12 minutes).
 ### Step 8: Process New Comments (if any)
 
 If the watcher found new comments:
-1. Process them exactly as in Phase 1, Steps 3-5
-2. Use `--detail <id>` to read each new comment
+1. Use `--detail <id>` to read each new comment's full detail
+2. Process them exactly as in Phase 1, Steps 3-5
 
 If no new comments were found, move to the summary.
 
