@@ -361,12 +361,6 @@ async function main() {
       process.exit(1);
     }
 
-    if (!options.json) {
-      console.log(
-        `${colors.dim}Finding PR for branch: ${branch}...${colors.reset}`
-      );
-    }
-
     const pr = await findPRForBranch(
       repoInfo.owner,
       repoInfo.repo,
@@ -393,12 +387,6 @@ async function main() {
       );
       console.error('Usage: agent-reviews --reply <id> "message"');
       process.exit(1);
-    }
-
-    if (!options.json) {
-      console.log(
-        `${colors.dim}Replying to comment ${options.replyTo}...${colors.reset}`
-      );
     }
 
     const result = await replyToComment(
@@ -430,12 +418,6 @@ async function main() {
         `${colors.red}Error: --detail requires a comment ID${colors.reset}`
       );
       process.exit(1);
-    }
-
-    if (!options.json) {
-      console.log(
-        `${colors.dim}Fetching comments for PR #${prNumber}...${colors.reset}`
-      );
     }
 
     const rawData = await fetchPRComments(
@@ -475,12 +457,6 @@ async function main() {
   }
 
   // Default: fetch and display comments
-  if (!options.json) {
-    console.log(
-      `${colors.dim}Fetching comments for PR #${prNumber}...${colors.reset}`
-    );
-  }
-
   const rawData = await fetchPRComments(
     repoInfo.owner,
     repoInfo.repo,
@@ -494,9 +470,6 @@ async function main() {
 
   console.log(formatOutput(filtered, options));
 
-  if (!options.json && prUrl) {
-    console.log(`\n${colors.dim}PR: ${prUrl}${colors.reset}`);
-  }
 }
 
 main().catch((error) => {
