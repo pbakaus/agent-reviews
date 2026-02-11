@@ -19,12 +19,12 @@ If no PR exists, notify the user and exit.
 ### Step 2: Fetch All Bot Comments
 
 ```bash
-node scripts/agent-reviews.js --bots-only --json
+node scripts/agent-reviews.js --bots-only --unanswered
 ```
 
-Parse the JSON output. Count how many have `hasAnyReply: false` (unanswered).
+This shows only unanswered bot comments. Each comment shows its ID in brackets (e.g., `[12345678]`), the author, file path, and a truncated body.
 
-If zero unanswered comments, print "No unanswered bot comments found" and skip to Phase 2.
+If zero comments are returned, print "No unanswered bot comments found" and skip to Phase 2.
 
 ### Step 3: Process Each Unanswered Comment
 
@@ -37,11 +37,6 @@ node scripts/agent-reviews.js --detail <comment_id>
 ```
 
 This shows the full comment body (no truncation), the diff hunk (code context), and all replies. Use this instead of `gh` CLI for comment details.
-
-For structured data, use:
-```bash
-node scripts/agent-reviews.js --detail <comment_id> --json
-```
 
 #### B. Evaluate the Finding
 
