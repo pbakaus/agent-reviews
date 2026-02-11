@@ -7,7 +7,6 @@ metadata:
   author: pbakaus
   version: "0.3.1"
   homepage: https://github.com/pbakaus/agent-reviews
-allowed-tools: Bash(scripts/agent-reviews.js *), Bash(gh *), Bash(git *), Read, Glob, Grep, Edit, Write, AskUserQuestion, Task, TaskOutput
 ---
 
 Automatically review, fix, and respond to findings from PR review bots on the current PR. Uses a deterministic two-phase workflow: first fix all existing issues, then poll once for new ones.
