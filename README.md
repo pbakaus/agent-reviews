@@ -4,6 +4,14 @@ Manage GitHub PR review comments from the terminal and from AI coding agents.
 
 PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) leave inline comments on your pull requests. agent-reviews gives you a CLI to list, filter, reply to, and watch those comments, plus a Claude Code skill that automates the entire triage-fix-reply loop.
 
+## Why
+
+**`gh` CLI is fragile for review comments.** Agents frequently get the syntax wrong, fail to paginate, and can't reliably detect whether a comment has been replied to. agent-reviews provides a single, purpose-built interface that handles all of this correctly.
+
+**Bot reviews create a doom loop.** You fix one round of findings, push, and new comments appear. Fix those, push again, more comments. This cycle can eat hours. The included skill solves it with an integrated watcher that keeps fixing and replying until the bots go quiet.
+
+**Works in Claude Code for the web.** Most solutions rely on local tooling that isn't available in cloud environments. agent-reviews works everywhere Claude Code runs, so you can kick off a session in your browser, let it resolve all bot findings autonomously, and come back to a clean PR.
+
 ## Install
 
 ### CLI (npm)
@@ -90,6 +98,7 @@ agent-reviews --pr 42
 | `--json` | `-j` | JSON output |
 | `--bots-only` | `-b` | Only bot comments |
 | `--humans-only` | `-H` | Only human comments |
+| `--expanded` | `-e` | Show full detail for each listed comment |
 | `--watch` | `-w` | Poll for new comments |
 | `--interval <sec>` | `-i` | Poll interval in seconds (default: 30) |
 | `--timeout <sec>` | | Inactivity timeout in seconds (default: 600) |
@@ -149,6 +158,12 @@ Each comment displays its reply status:
 ### Watch mode
 
 Polls the GitHub API at a configurable interval and reports new comments as they appear. Outputs both formatted text and JSON for AI agent consumption. Exits automatically after a configurable inactivity timeout (default: 10 minutes).
+
+## FAQ
+
+### How can I make the skill review human comments as well?
+
+The skill defaults to `--bots-only` because that's the most common use case, but it's easy to change. Open your local copy of `SKILL.md` (inside `skills/agent-reviews/`) and remove the `--bots-only` flag from the commands in Steps 2, 6, and anywhere else it appears. The skill will then fetch and process all comments, regardless of author.
 
 ## License
 
