@@ -3,13 +3,16 @@ name: agent-reviews
 description: Review and fix PR review bot findings on current PR, loop until resolved. Fetches unanswered bot comments, evaluates each finding, fixes real bugs, dismisses false positives, and replies to every comment with the outcome.
 license: MIT
 compatibility: Requires git and gh (GitHub CLI) installed. Designed for Claude Code.
+allowed-tools: Bash(node scripts/agent-reviews.js *) Bash(gh pr view *)
 metadata:
   author: pbakaus
-  version: "0.5.1"
+  version: "0.5.2"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
 Automatically review, fix, and respond to findings from PR review bots on the current PR. Uses a deterministic two-phase workflow: first fix all existing issues, then poll once for new ones.
+
+**Path note:** All `scripts/agent-reviews.js` references below are relative to this skill's directory (next to this SKILL.md file). Run them with `node`.
 
 ## Phase 1: FETCH & FIX (synchronous)
 
@@ -23,9 +26,7 @@ If no PR exists, notify the user and exit.
 
 ### Step 2: Fetch All Bot Comments (Expanded)
 
-```bash
-scripts/agent-reviews.js --bots-only --unanswered --expanded
-```
+Run `scripts/agent-reviews.js --bots-only --unanswered --expanded`
 
 This shows only unanswered bot comments with full detail: complete comment body (no truncation), diff hunk (code context), and all replies. Each comment shows its ID in brackets (e.g., `[12345678]`).
 
@@ -94,23 +95,16 @@ After evaluating and fixing ALL unanswered comments:
 Now that the commit hash exists, reply to every processed comment:
 
 **For each TRUE POSITIVE:**
-```bash
-scripts/agent-reviews.js --reply <comment_id> "Fixed in {hash}.
 
-{Brief description of the fix}"
-```
+Run `scripts/agent-reviews.js --reply <comment_id> "Fixed in {hash}. {Brief description of the fix}"`
 
 **For each FALSE POSITIVE:**
-```bash
-scripts/agent-reviews.js --reply <comment_id> "Won't fix: {reason}
 
-{Explanation of why this is intentional or not applicable}"
-```
+Run `scripts/agent-reviews.js --reply <comment_id> "Won't fix: {reason}. {Explanation of why this is intentional or not applicable}"`
 
 **For each SKIPPED:**
-```bash
-scripts/agent-reviews.js --reply <comment_id> "Skipped per user request"
-```
+
+Run `scripts/agent-reviews.js --reply <comment_id> "Skipped per user request"`
 
 **DO NOT start Phase 2 until all replies are posted.**
 
@@ -122,11 +116,7 @@ scripts/agent-reviews.js --reply <comment_id> "Skipped per user request"
 
 Launch the watcher in the background. It polls every 30 seconds and exits after 10 minutes of inactivity (no new comments):
 
-```bash
-scripts/agent-reviews.js --watch --bots-only
-```
-
-This runs as a background task.
+Run `scripts/agent-reviews.js --watch --bots-only` as a background task.
 
 **CRITICAL: DO NOT cancel the background task early. Let it complete its full cycle.**
 
