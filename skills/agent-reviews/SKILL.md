@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires git and gh (GitHub CLI) installed. Designed for Claude Code.
 metadata:
   author: pbakaus
-  version: "0.3.1"
+  version: "0.4.0"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
