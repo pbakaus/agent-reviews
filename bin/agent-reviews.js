@@ -169,7 +169,7 @@ ${colors.bright}Options:${colors.reset}
   -v, --version      Show version
 
 ${colors.bright}Watch Mode:${colors.reset}
-  -w, --watch        Poll for new comments periodically
+  -w, --watch        Poll for new comments (exits on detection)
   -i, --interval     Poll interval in seconds (default: 30)
   --timeout          Exit after N seconds of inactivity (default: 600)
 
@@ -276,17 +276,48 @@ async function watchForComments(context, options) {
     const newComments = filtered.filter((c) => !seenIds.has(c.id));
 
     if (newComments.length > 0) {
-      lastActivityTime = Date.now();
+      for (const comment of newComments) {
+        seenIds.add(comment.id);
+      }
 
       console.log(
         `\n${colors.green}=== NEW COMMENTS DETECTED [${formatTimestamp()}] ===${colors.reset}`
       );
       console.log(
-        `${colors.bright}Found ${newComments.length} new comment${newComments.length === 1 ? "" : "s"}${colors.reset}\n`
+        `${colors.bright}Found ${newComments.length} new comment${newComments.length === 1 ? "" : "s"}${colors.reset}`
       );
 
-      for (const comment of newComments) {
+      // Brief grace period to catch any stragglers from the same bot batch
+      console.log(
+        `${colors.dim}Waiting 5s for additional comments...${colors.reset}`
+      );
+      await sleep(5);
+
+      // Re-fetch to catch any comments posted during the grace period
+      const graceData = await fetchPRComments(
+        owner,
+        repo,
+        prNumber,
+        token,
+        proxyFetch
+      );
+      const graceProcessed = processComments(graceData);
+      const graceFiltered = filterComments(graceProcessed, options);
+      const lateComments = graceFiltered.filter((c) => !seenIds.has(c.id));
+
+      for (const comment of lateComments) {
         seenIds.add(comment.id);
+        newComments.push(comment);
+      }
+
+      if (lateComments.length > 0) {
+        console.log(
+          `${colors.bright}Caught ${lateComments.length} additional comment${lateComments.length === 1 ? "" : "s"}${colors.reset}`
+        );
+      }
+
+      console.log("");
+      for (const comment of newComments) {
         console.log(formatComment(comment));
         console.log("");
       }
@@ -294,7 +325,16 @@ async function watchForComments(context, options) {
       // JSON output for AI agent parsing
       console.log(`${colors.dim}--- JSON for processing ---${colors.reset}`);
       console.log(JSON.stringify(newComments, null, 2));
-      console.log(`${colors.dim}--- end JSON ---${colors.reset}\n`);
+      console.log(`${colors.dim}--- end JSON ---${colors.reset}`);
+
+      // Exit immediately so the caller can process and restart if needed
+      console.log(
+        `\n${colors.green}=== WATCH: EXITING WITH NEW COMMENTS ===${colors.reset}`
+      );
+      console.log(
+        `${colors.dim}Restart watcher after processing to catch further comments.${colors.reset}`
+      );
+      return;
     } else {
       const inactiveSeconds = Math.round(
         (Date.now() - lastActivityTime) / 1000

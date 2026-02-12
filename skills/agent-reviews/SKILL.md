@@ -6,7 +6,7 @@ compatibility: Requires git and gh (GitHub CLI) installed. Designed for Claude C
 allowed-tools: Bash(node scripts/agent-reviews.js *) Bash(gh pr view *)
 metadata:
   author: pbakaus
-  version: "0.5.2"
+  version: "0.6.0"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
@@ -110,27 +110,29 @@ Run `scripts/agent-reviews.js --reply <comment_id> "Skipped per user request"`
 
 ---
 
-## Phase 2: POLL FOR NEW COMMENTS (10-minute inactivity timeout)
+## Phase 2: POLL FOR NEW COMMENTS (loop until quiet)
 
-### Step 6: Start Watcher
+The watcher exits immediately when new comments are found (after a 5s grace period to catch batch posts). This means you run it in a loop: start watcher, process any comments it returns, restart watcher, repeat until the watcher times out with no new comments.
 
-Launch the watcher in the background. It polls every 30 seconds and exits after 10 minutes of inactivity (no new comments):
+### Step 6: Start Watcher Loop
+
+Repeat the following until the watcher exits with no new comments:
+
+**6a.** Launch the watcher in the background:
 
 Run `scripts/agent-reviews.js --watch --bots-only` as a background task.
 
-**CRITICAL: DO NOT cancel the background task early. Let it complete its full cycle.**
+**6b.** Use `TaskOutput` to wait for the watcher to complete (blocks up to 12 minutes).
 
-### Step 7: Wait for Results
+**6c.** Check the output:
 
-Use `TaskOutput` to wait for the watcher to complete (blocks up to 12 minutes).
+- **If new comments were found** (output contains `EXITING WITH NEW COMMENTS`):
+  1. Use `--detail <id>` to read each new comment's full detail
+  2. Process them exactly as in Phase 1, Steps 3-5 (evaluate, fix, commit, push, reply)
+  3. **Go back to Step 6a** to restart the watcher
 
-### Step 8: Process New Comments (if any)
-
-If the watcher found new comments:
-1. Use `--detail <id>` to read each new comment's full detail
-2. Process them exactly as in Phase 1, Steps 3-5
-
-If no new comments were found, move to the summary.
+- **If no new comments** (output contains `WATCH COMPLETE`):
+  Stop looping and move to the Summary Report.
 
 ---
 
