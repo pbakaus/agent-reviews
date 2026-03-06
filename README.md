@@ -54,8 +54,9 @@ The proxy environment is also why agent-reviews includes [undici](https://github
 **Resolution order** (first match wins):
 
 1. `GITHUB_TOKEN` environment variable
-2. `.env.local` in the repo root
-3. `gh auth token` (GitHub CLI)
+2. `GH_TOKEN` environment variable
+3. `.env.local` in the repo root
+4. `gh auth token` (GitHub CLI)
 
 ## CLI Usage
 

@@ -203,6 +203,7 @@ describe("isBot", () => {
     expect(isBot("vercel")).toBe(true);
     expect(isBot("supabase")).toBe(true);
     expect(isBot("chatgpt-codex-connector")).toBe(true);
+    expect(isBot("copilot-pull-request-reviewer")).toBe(true);
   });
 });
 
