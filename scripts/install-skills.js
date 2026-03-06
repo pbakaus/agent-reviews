@@ -31,6 +31,12 @@ for (const name of SKILL_DIRS) {
   // Patch all npx agent-reviews references to use local CLI binary
   content = content.replaceAll("npx agent-reviews", `node ${LOCAL_CLI}`);
 
+  // Remove the package manager substitution note (irrelevant in local dev)
+  content = content.replace(
+    /All commands below use [^\n]*\. If the project uses a different package manager[^\n]*\. Honor the user's package manager preference throughout\.\n\n/,
+    ""
+  );
+
   fs.writeFileSync(path.join(skillDest, "SKILL.md"), content);
   console.log(`Installed ${name} -> .claude/skills/${name}/ (patched for local dev)`);
 }
