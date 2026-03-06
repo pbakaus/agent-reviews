@@ -30,8 +30,8 @@ for (const name of SKILL_DIRS) {
 
   // Patch all package runner references to use local CLI binary
   content = content.replaceAll("npx agent-reviews", `node ${LOCAL_CLI}`);
-  content = content.replaceAll("pnpm exec agent-reviews", `node ${LOCAL_CLI}`);
-  content = content.replaceAll("yarn exec agent-reviews", `node ${LOCAL_CLI}`);
+  content = content.replaceAll("pnpm dlx agent-reviews", `node ${LOCAL_CLI}`);
+  content = content.replaceAll("yarn dlx agent-reviews", `node ${LOCAL_CLI}`);
   content = content.replaceAll("bunx agent-reviews", `node ${LOCAL_CLI}`);
 
   // Deduplicate allowed-tools after patching (all runners become the same)
