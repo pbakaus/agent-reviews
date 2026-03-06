@@ -28,7 +28,6 @@
     ".claude-plugin/"
   ],
   "scripts": {
-    "build:skill": "node scripts/build-skill.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },

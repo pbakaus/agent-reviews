@@ -3,7 +3,7 @@ name: resolve-agent-reviews
 description: Resolve PR review bot findings on current PR. Fetches unanswered bot comments, evaluates each finding, fixes real bugs, dismisses false positives, replies to every comment, and watches for new findings until bots go quiet.
 license: MIT
 compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
-allowed-tools: Bash(node scripts/agent-reviews.js *) Bash(gh pr view *) Bash(git branch --show-current)
+allowed-tools: Bash(npx agent-reviews *) Bash(gh pr view *) Bash(git branch --show-current)
 metadata:
   author: pbakaus
   version: "1.0.0"
@@ -12,7 +12,17 @@ metadata:
 
 Automatically resolve findings from PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) on the current PR. Uses a two-phase workflow: fix all existing issues, then poll for new ones until bots go quiet.
 
-**Path note:** All `scripts/agent-reviews.js` references below are relative to this skill's directory (next to this SKILL.md file). Run them with `node`.
+## Prerequisites
+
+All commands below use `npx agent-reviews`. If the project uses a different package manager, substitute the appropriate runner (e.g., `pnpm exec agent-reviews` for pnpm, `yarn exec agent-reviews` for Yarn, `bunx agent-reviews` for Bun). Honor the user's package manager preference throughout.
+
+Verify the CLI is available:
+
+```bash
+npx agent-reviews --version
+```
+
+If this fails, ask the user to install it (`npm install -g agent-reviews` or equivalent).
 
 ## Phase 1: FETCH & FIX (synchronous)
 
@@ -34,7 +44,7 @@ If no PR exists, notify the user and exit.
 
 ### Step 2: Fetch All Bot Comments (Expanded)
 
-Run `scripts/agent-reviews.js --bots-only --unanswered --expanded`
+Run `npx agent-reviews --bots-only --unanswered --expanded`
 
 This shows only unanswered bot comments with full detail: complete comment body (no truncation), diff hunk (code context), and all replies. Each comment shows its ID in brackets (e.g., `[12345678]`).
 
@@ -104,15 +114,15 @@ Now that the commit hash exists, reply to every processed comment:
 
 **For each TRUE POSITIVE:**
 
-Run `scripts/agent-reviews.js --reply <comment_id> "Fixed in {hash}. {Brief description of the fix}"`
+Run `npx agent-reviews --reply <comment_id> "Fixed in {hash}. {Brief description of the fix}"`
 
 **For each FALSE POSITIVE:**
 
-Run `scripts/agent-reviews.js --reply <comment_id> "Won't fix: {reason}. {Explanation of why this is intentional or not applicable}"`
+Run `npx agent-reviews --reply <comment_id> "Won't fix: {reason}. {Explanation of why this is intentional or not applicable}"`
 
 **For each SKIPPED:**
 
-Run `scripts/agent-reviews.js --reply <comment_id> "Skipped per user request"`
+Run `npx agent-reviews --reply <comment_id> "Skipped per user request"`
 
 **DO NOT start Phase 2 until all replies are posted.**
 
@@ -128,7 +138,7 @@ Repeat the following until the watcher exits with no new comments:
 
 **6a.** Launch the watcher in the background:
 
-Run `scripts/agent-reviews.js --watch --bots-only` as a background task.
+Run `npx agent-reviews --watch --bots-only` as a background task.
 
 **6b.** Wait for the background command to complete (up to 12 minutes).
 
