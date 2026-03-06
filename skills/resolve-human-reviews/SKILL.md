@@ -3,7 +3,7 @@ name: resolve-human-reviews
 description: Resolve human PR review comments on current PR. Fetches unanswered human comments, evaluates each piece of feedback, applies fixes, and replies to every comment with the outcome.
 license: MIT
 compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
-allowed-tools: Bash(npx agent-reviews *) Bash(pnpm exec agent-reviews *) Bash(yarn exec agent-reviews *) Bash(bunx agent-reviews *) Bash(gh pr view *) Bash(git branch --show-current) Bash(git config *) Bash(git add *) Bash(git commit *) Bash(git push *)
+allowed-tools: Bash(npx agent-reviews *) Bash(pnpm exec agent-reviews *) Bash(yarn exec agent-reviews *) Bash(bunx agent-reviews *) Bash(git config *) Bash(git add *) Bash(git commit *) Bash(git push *)
 metadata:
   author: pbakaus
   version: "1.0.0"
@@ -16,37 +16,15 @@ Automatically resolve human review comments on the current PR. Fetches unanswere
 
 All commands below use `npx agent-reviews`. If the project uses a different package manager, substitute the appropriate runner (e.g., `pnpm exec agent-reviews` for pnpm, `yarn exec agent-reviews` for Yarn, `bunx agent-reviews` for Bun). Honor the user's package manager preference throughout.
 
-Verify the CLI is available:
-
-```bash
-npx agent-reviews --version
-```
-
-If this fails, ask the user to install it (`npm install -g agent-reviews` or equivalent).
+**Cloud environments only** (e.g., Codespaces, remote agents): verify git author identity so CI checks can map commits to the user. Run `git config --global --get user.email` and if empty or a placeholder, set it manually. Skip this check in local environments.
 
 ## Phase 1: FETCH & FIX (synchronous)
 
-### Step 1: Identify Current PR
-
-First get the branch name, then use it to fetch the PR (avoids subshell permission prompts):
-
-```bash
-git branch --show-current
-```
-
-```bash
-gh pr view <branch-name> --json number,url,headRefName
-```
-
-If the `GH_REPO` environment variable is set, add `--repo "$GH_REPO"` to the command.
-
-If no PR exists, notify the user and exit.
-
-**Cloud environments only** (e.g., Codespaces, remote agents): verify git author identity so CI checks can map commits to the user. Run `git config --global --get user.email` and if empty or a placeholder, set it manually. Skip this check in local environments.
-
-### Step 2: Fetch All Human Comments (Expanded)
+### Step 1: Fetch All Human Comments (Expanded)
 
 Run `npx agent-reviews --humans-only --unanswered --expanded`
+
+The CLI auto-detects the current branch, finds the associated PR, and authenticates via `gh` CLI or environment variables. If anything fails (no token, no PR, CLI not installed), it exits with a clear error message.
 
 This shows only unanswered human comments with full detail: complete comment body (no truncation), diff hunk (code context), and all replies. Each comment shows its ID in brackets (e.g., `[12345678]`).
 
