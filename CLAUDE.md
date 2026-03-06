@@ -7,11 +7,13 @@ CLI + Agent Skill for managing GitHub PR review bot comments. See `README.md` fo
 ## Structure
 
 ```
-bin/agent-reviews.js       CLI entry point (npm -g users)
-lib/                       Core modules (github, comments, format)
-skills/agent-reviews/      Agent Skill (SKILL.md + bundled scripts)
-scripts/build-skill.js     Copies lib/ + bin/ into skill scripts/
-.claude-plugin/            Plugin manifest + marketplace catalog
+bin/agent-reviews.js             CLI entry point (npm -g users)
+lib/                             Core modules (github, comments, format)
+skills/resolve-reviews/          Skill: all reviews (human + bot)
+skills/resolve-agent-reviews/    Skill: bot reviews only
+skills/resolve-human-reviews/    Skill: human reviews only
+scripts/build-skill.js           Copies lib/ + bin/ into each skill's scripts/
+.claude-plugin/                  Plugin manifest + marketplace catalog
 ```
 
 ## Key Commands

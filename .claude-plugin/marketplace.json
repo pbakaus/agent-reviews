@@ -4,13 +4,23 @@
     "name": "Paul Bakaus"
   },
   "metadata": {
-    "description": "CLI and Claude Code skill for managing GitHub PR review comments"
+    "description": "CLI and Claude Code skills for managing GitHub PR review comments"
   },
   "plugins": [
     {
-      "name": "agent-reviews",
+      "name": "resolve-reviews",
       "source": "./",
-      "description": "Manage GitHub PR review comments — list, filter, reply, and watch for bot findings"
+      "description": "Resolve all PR review comments (human and bot) on the current PR"
+    },
+    {
+      "name": "resolve-agent-reviews",
+      "source": "./",
+      "description": "Resolve PR review bot findings (Copilot, Cursor Bugbot, etc.) on the current PR"
+    },
+    {
+      "name": "resolve-human-reviews",
+      "source": "./",
+      "description": "Resolve human PR review comments on the current PR"
     }
   ]
 }

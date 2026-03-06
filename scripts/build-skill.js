@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Copies the CLI and lib files into skills/agent-reviews/scripts/
- * so the skill is self-contained (no npx needed at runtime).
+ * Copies the CLI and lib files into each skill's scripts/ directory
+ * so the skills are self-contained (no npx needed at runtime).
  *
  * Run: node scripts/build-skill.js
  */
@@ -11,19 +11,15 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "..");
-const DEST = path.join(ROOT, "skills", "agent-reviews", "scripts");
+const SKILLS_DIR = path.join(ROOT, "skills");
 
-// Ensure destination exists
-fs.mkdirSync(DEST, { recursive: true });
+const SKILL_DIRS = [
+  "resolve-reviews",
+  "resolve-agent-reviews",
+  "resolve-human-reviews",
+];
 
-// Copy lib files as-is
-for (const file of ["github.js", "comments.js", "format.js"]) {
-  fs.copyFileSync(path.join(ROOT, "lib", file), path.join(DEST, file));
-}
-
-// Copy and patch the CLI entry point:
-// - Rewrite require("../lib/...") to require("./...")
-// - Rewrite require("../package.json") to inline version
+// Read and patch CLI entry point once (shared across all skills)
 let cli = fs.readFileSync(path.join(ROOT, "bin", "agent-reviews.js"), "utf8");
 cli = cli.replace(/require\("\.\.\/lib\//g, 'require("./');
 const pkg = require(path.join(ROOT, "package.json"));
@@ -32,9 +28,18 @@ cli = cli.replace(
   `console.log("${pkg.version}")`
 );
 
-fs.writeFileSync(path.join(DEST, "agent-reviews.js"), cli);
+for (const skillName of SKILL_DIRS) {
+  const dest = path.join(SKILLS_DIR, skillName, "scripts");
+  fs.mkdirSync(dest, { recursive: true });
 
-console.log(`Built skill scripts to ${path.relative(ROOT, DEST)}/`);
-console.log(
-  `  Files: ${fs.readdirSync(DEST).join(", ")}`
-);
+  // Copy lib files as-is
+  for (const file of ["github.js", "comments.js", "format.js"]) {
+    fs.copyFileSync(path.join(ROOT, "lib", file), path.join(dest, file));
+  }
+
+  // Write patched CLI
+  fs.writeFileSync(path.join(dest, "agent-reviews.js"), cli);
+
+  console.log(`Built ${path.relative(ROOT, dest)}/`);
+  console.log(`  Files: ${fs.readdirSync(dest).join(", ")}`);
+}

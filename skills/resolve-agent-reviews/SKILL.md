@@ -1,16 +1,16 @@
 ---
-name: agent-reviews
-description: Review and fix PR review bot findings on current PR, loop until resolved. Fetches unanswered bot comments, evaluates each finding, fixes real bugs, dismisses false positives, and replies to every comment with the outcome.
+name: resolve-agent-reviews
+description: Resolve PR review bot findings on current PR. Fetches unanswered bot comments, evaluates each finding, fixes real bugs, dismisses false positives, replies to every comment, and watches for new findings until bots go quiet.
 license: MIT
 compatibility: Requires git and gh (GitHub CLI) installed. Designed for Claude Code.
-allowed-tools: Bash(node scripts/agent-reviews.js *) Bash(gh pr view *)
+allowed-tools: Bash(node scripts/agent-reviews.js *) Bash(gh pr view *) Bash(git branch --show-current)
 metadata:
   author: pbakaus
   version: "0.6.0"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
-Automatically review, fix, and respond to findings from PR review bots on the current PR. Uses a deterministic two-phase workflow: first fix all existing issues, then poll once for new ones.
+Automatically resolve findings from PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) on the current PR. Uses a two-phase workflow: fix all existing issues, then poll for new ones until bots go quiet.
 
 **Path note:** All `scripts/agent-reviews.js` references below are relative to this skill's directory (next to this SKILL.md file). Run them with `node`.
 
@@ -66,7 +66,7 @@ Read the referenced code and determine:
 - The "bug" is actually a feature or intentional behavior
 - Bot misread the code flow
 
-**When UNCERTAIN — use `AskUserQuestion`:**
+**When UNCERTAIN -- use `AskUserQuestion`:**
 - The fix would require architectural changes
 - You're genuinely unsure if the behavior is intentional
 - The "bug" relates to business logic you don't fully understand
@@ -166,7 +166,7 @@ After both phases complete, provide a summary:
 - {description} - Fixed in {commit}
 
 ### Status
-✅ All findings addressed. Watch completed.
+All findings addressed. Watch completed.
 ```
 
 ## Important Notes

@@ -20,26 +20,32 @@ PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) leave inline comments 
 npm install -g agent-reviews
 ```
 
-### Agent Skill
+### Agent Skills
 
-Installs the full automated workflow as a slash command (no npm install required).
+Three skills are available, each as a slash command (no npm install required):
+
+| Skill | What it resolves |
+|-------|-----------------|
+| `resolve-reviews` | All comments (human + bot) |
+| `resolve-agent-reviews` | Bot comments only (Copilot, Cursor, etc.) |
+| `resolve-human-reviews` | Human comments only |
 
 **Agent-agnostic** (works with any agent that supports [Agent Skills](https://agentskills.io)):
 
 ```bash
-npx skills add pbakaus/agent-reviews@agent-reviews
+npx skills add pbakaus/agent-reviews@resolve-agent-reviews
 ```
 
 **Claude Code plugin**:
 
 ```
 /plugin marketplace add pbakaus/agent-reviews
-/plugin install agent-reviews@agent-reviews
+/plugin install agent-reviews@resolve-agent-reviews
 ```
 
-Both register the `/agent-reviews` command. The skill bundles its own scripts, so nothing is downloaded at runtime.
+Replace `resolve-agent-reviews` with whichever skill you want. Each skill bundles its own scripts, so nothing is downloaded at runtime.
 
-> You can also use both: install the CLI globally for direct terminal use, and the skill for the agent workflow.
+> You can also use both: install the CLI globally for direct terminal use, and a skill for the agent workflow.
 
 ## Authentication
 
@@ -103,25 +109,25 @@ agent-reviews --pr 42
 | `--interval <sec>` | `-i` | Poll interval in seconds (default: 30) |
 | `--timeout <sec>` | | Inactivity timeout in seconds (default: 600) |
 
-## Claude Code Skill
+## Claude Code Skills
 
-The `/agent-reviews` skill automates the full PR review bot workflow:
+The skills automate the full PR review resolution workflow:
 
-1. Fetch all unanswered bot comments via `npx agent-reviews --bots-only --json`
-2. Evaluate each finding (true positive, false positive, or uncertain)
-3. Fix real bugs and run lint/type-check
+1. Fetch unanswered comments (all, bot-only, or human-only depending on skill)
+2. Evaluate each finding (true positive, false positive, actionable, etc.)
+3. Fix real issues and run lint/type-check
 4. Dismiss false positives with an explanation
 5. Reply to every comment with the outcome
-6. Watch for new comments as bots re-analyze the fixes
+6. Watch for new comments and repeat until quiet
 7. Report a summary of all actions taken
 
 ### Skill behavior
 
-- **True positives** get fixed, verified, and replied with `Fixed in {commit}`
+- **True positives / actionable feedback** get fixed and replied with `Fixed in {commit}`
 - **False positives** get replied with `Won't fix: {reason}`
 - **Uncertain findings** prompt the user via `AskUserQuestion`
 - All fixes are batched into a single commit before polling begins
-- Watch mode runs for up to 10 minutes, processing any new findings
+- Watch mode loops until no new comments appear for 10 minutes
 
 ## How It Works
 
@@ -158,12 +164,6 @@ Each comment displays its reply status:
 ### Watch mode
 
 Polls the GitHub API at a configurable interval and reports new comments as they appear. Outputs both formatted text and JSON for AI agent consumption. Exits automatically after a configurable inactivity timeout (default: 10 minutes).
-
-## FAQ
-
-### How can I make the skill review human comments as well?
-
-The skill defaults to `--bots-only` because that's the most common use case, but it's easy to change. Open your local copy of `SKILL.md` (inside `skills/agent-reviews/`) and remove the `--bots-only` flag from the commands in Steps 2, 6, and anywhere else it appears. The skill will then fetch and process all comments, regardless of author.
 
 ## License
 
