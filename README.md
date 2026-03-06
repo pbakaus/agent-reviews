@@ -183,6 +183,10 @@ Polls the GitHub API at a configurable interval and reports new comments as they
 - `--resolve` resolves the review thread after replying (use with `--reply`)
 - `--expanded` / `-e` shows full detail (body, diff hunk, replies) for each comment in list mode
 
+**Bug fixes:**
+
+- `--json --resolve` no longer emits plain-text status messages to stdout
+
 **Cloud and proxy support:**
 
 - `GH_TOKEN` environment variable support (in addition to `GITHUB_TOKEN`)
@@ -190,7 +194,9 @@ Polls the GitHub API at a configurable interval and reports new comments as they
 - Curl-based HTTP fallback for environments without native fetch/undici
 - Curl requests include timeouts (10s connect, 60s max)
 
-**Simplified architecture.** Skills now invoke `npx agent-reviews` at runtime instead of bundling their own scripts, reducing the package from ~4000 lines of duplicated code to a single CLI entry point.
+**Smarter filtering.** Bot review bodies (summaries listing inline findings) are now automatically excluded, since actionable findings always come through as inline comments. Reply comments posted by agent-reviews itself (`> Re: comment ...`) are also filtered to avoid noise.
+
+**Simplified architecture.** Skills now invoke `npx agent-reviews` at runtime instead of bundling their own scripts, reducing the package from ~4000 lines of duplicated code to a single CLI entry point. Skills no longer run redundant startup commands (version check, branch detection, PR lookup), relying on the CLI's own error handling instead.
 
 ## License
 
