@@ -227,4 +227,6 @@ module.exports = {
   getRepoInfo,
   getRepoRoot,
   getCurrentBranch,
+  parseHeaderMap,
+  parseLastHeaderBlock,
 };

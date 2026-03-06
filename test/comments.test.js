@@ -197,6 +197,13 @@ describe("isBot", () => {
     expect(isBot(null)).toBe(false);
     expect(isBot(undefined)).toBe(false);
   });
+
+  it("detects known bot logins without [bot] suffix", () => {
+    expect(isBot("cursor")).toBe(true);
+    expect(isBot("vercel")).toBe(true);
+    expect(isBot("supabase")).toBe(true);
+    expect(isBot("chatgpt-codex-connector")).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -234,6 +241,30 @@ describe("isMetaComment", () => {
   it("returns false for empty body", () => {
     expect(isMetaComment("cursor[bot]", "")).toBe(false);
     expect(isMetaComment("cursor[bot]", null)).toBe(false);
+  });
+
+  it("filters Vercel comments without [bot] suffix", () => {
+    expect(isMetaComment("vercel", "[vc]: deployment status")).toBe(true);
+  });
+
+  it("filters Supabase comments without [bot] suffix", () => {
+    expect(isMetaComment("supabase", "[supa]: branch ready")).toBe(true);
+  });
+
+  it("filters Cursor comments without [bot] suffix", () => {
+    expect(
+      isMetaComment(
+        "cursor",
+        "Cursor Bugbot has reviewed your changes and found 3 issues."
+      )
+    ).toBe(true);
+  });
+
+  it("does not filter non-meta comments from bots without [bot] suffix", () => {
+    expect(
+      isMetaComment("cursor", "### Skill command blocked by permissions")
+    ).toBe(false);
+    expect(isMetaComment("vercel", "Build failed: see logs")).toBe(false);
   });
 });
 
@@ -310,6 +341,47 @@ describe("processComments", () => {
     expect(result).toHaveLength(0);
   });
 
+  it("filters meta-comments from bots without [bot] suffix", () => {
+    const data = {
+      reviewComments: [],
+      issueComments: [
+        {
+          id: 1,
+          user: { login: "cursor" },
+          body: "Cursor Bugbot has reviewed your changes and found 3 issues.",
+          created_at: "2025-01-01T00:00:00Z",
+          updated_at: "2025-01-01T00:00:00Z",
+          html_url: "https://github.com/org/repo/pull/1#issuecomment-1",
+        },
+        {
+          id: 2,
+          user: { login: "vercel" },
+          body: "[vc]: deployment ready",
+          created_at: "2025-01-01T00:00:00Z",
+          updated_at: "2025-01-01T00:00:00Z",
+          html_url: "https://github.com/org/repo/pull/1#issuecomment-2",
+        },
+      ],
+      reviews: [],
+    };
+
+    const result = processComments(data);
+    expect(result).toHaveLength(0);
+  });
+
+  it("marks known bots without [bot] suffix as isBot", () => {
+    const data = {
+      reviewComments: [
+        makeReviewComment({ id: 1, user: { login: "Copilot" }, body: "Suggestion" }),
+      ],
+      issueComments: [],
+      reviews: [],
+    };
+
+    const result = processComments(data);
+    expect(result[0].isBot).toBe(true);
+  });
+
   it("sorts comments newest first", () => {
     const data = {
       reviewComments: [
@@ -371,5 +443,29 @@ describe("filterComments", () => {
     const result = filterComments(comments, { filter: "unanswered" });
     expect(result).toHaveLength(1);
     expect(result[0].hasAnyReply).toBe(false);
+  });
+
+  it("combines bot filter with unanswered", () => {
+    const result = filterComments(comments, {
+      botsOnly: true,
+      filter: "unanswered",
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].isBot).toBe(true);
+    expect(result[0].hasAnyReply).toBe(false);
+  });
+
+  it("combines human filter with unresolved", () => {
+    const result = filterComments(comments, {
+      humansOnly: true,
+      filter: "unresolved",
+    });
+    // The one human comment has hasHumanReply=true so it's "resolved"
+    expect(result).toHaveLength(0);
+  });
+
+  it("returns all when no filters", () => {
+    const result = filterComments(comments, {});
+    expect(result).toHaveLength(3);
   });
 });
