@@ -19,6 +19,7 @@ skills/resolve-human-reviews/    Skill: human reviews only
 
 | Task | Command |
 |------|---------|
+| Install skills locally | `npm run install-skills` (also runs on `npm install`) |
 | Publish to npm | `npm publish` |
 | Test CLI locally | `node bin/agent-reviews.js` |
 | Run tests | `npm test` |

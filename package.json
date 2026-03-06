@@ -28,6 +28,8 @@
     ".claude-plugin/"
   ],
   "scripts": {
+    "install-skills": "node scripts/install-skills.js",
+    "prepare": "node scripts/install-skills.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
