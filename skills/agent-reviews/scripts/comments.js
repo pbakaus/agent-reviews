@@ -105,13 +105,16 @@ async function fetchPRComments(owner, repo, prNumber, token, proxyFetch) {
  * Users can extend this list via the `metaFilters` option.
  */
 const DEFAULT_META_FILTERS = [
-  // Vercel deployment status
-  (user, body) => user === "vercel[bot]" && body.startsWith("[vc]:"),
-  // Supabase branch status
-  (user, body) => user === "supabase[bot]" && body.startsWith("[supa]:"),
-  // cursor[bot] summary (not the actual findings)
+  // Vercel deployment status (login may be "vercel[bot]" or "vercel")
   (user, body) =>
-    user === "cursor[bot]" &&
+    (user === "vercel[bot]" || user === "vercel") && body.startsWith("[vc]:"),
+  // Supabase branch status (login may be "supabase[bot]" or "supabase")
+  (user, body) =>
+    (user === "supabase[bot]" || user === "supabase") &&
+    body.startsWith("[supa]:"),
+  // cursor[bot] summary (not the actual findings; login may drop "[bot]" suffix)
+  (user, body) =>
+    (user === "cursor[bot]" || user === "cursor") &&
     body.startsWith("Cursor Bugbot has reviewed your changes"),
 ];
 
@@ -120,13 +123,23 @@ function isMetaComment(user, body, metaFilters = DEFAULT_META_FILTERS) {
   return metaFilters.some((filter) => filter(user, body));
 }
 
+// Known bot logins that may appear without the "[bot]" suffix depending on
+// how the GitHub API returns them (REST vs GraphQL, app vs OAuth).
+const KNOWN_BOT_LOGINS = new Set([
+  "cursor",
+  "vercel",
+  "supabase",
+  "chatgpt-codex-connector",
+  "github-actions",
+  "Copilot",
+]);
+
 function isBot(username) {
   if (!username) return false;
   return (
     username.endsWith("[bot]") ||
-    username === "Copilot" ||
-    username.includes("bot") ||
-    username === "github-actions"
+    KNOWN_BOT_LOGINS.has(username) ||
+    username.includes("bot")
   );
 }
 

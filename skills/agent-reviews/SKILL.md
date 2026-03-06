@@ -18,11 +18,19 @@ Automatically review, fix, and respond to findings from PR review bots on the cu
 
 ### Step 1: Identify Current PR
 
+First get the branch name, then use it to fetch the PR (avoids subshell permission prompts):
+
 ```bash
-gh pr view --json number,url,headRefName
+git branch --show-current
+```
+
+```bash
+gh pr view <branch-name> ${GH_REPO:+--repo "$GH_REPO"} --json number,url,headRefName
 ```
 
 If no PR exists, notify the user and exit.
+
+**Cloud environments only** (`CLAUDE_CODE_REMOTE=true` or `CODESPACES=true`): verify git author identity so Vercel and GitHub checks can map commits to the user. Run `git config --global --get user.email` and if empty or a placeholder (e.g., `noreply@anthropic.com`), run `scripts/cloud-setup.sh` or set it manually. Skip this check in local environments.
 
 ### Step 2: Fetch All Bot Comments (Expanded)
 
