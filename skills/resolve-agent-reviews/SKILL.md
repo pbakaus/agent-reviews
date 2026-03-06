@@ -1,32 +1,30 @@
 ---
-name: agent-reviews
-description: Review and fix PR review bot findings on current PR, loop until resolved. Fetches unanswered bot comments, evaluates each finding, fixes real bugs, dismisses false positives, and replies to every comment with the outcome.
+name: resolve-agent-reviews
+description: Resolve PR review bot findings on current PR. Fetches unanswered bot comments, evaluates each finding, fixes real bugs, dismisses false positives, replies to every comment, and watches for new findings until bots go quiet.
 license: MIT
-compatibility: Requires git and gh (GitHub CLI) installed. Designed for Claude Code.
-allowed-tools: Bash(node scripts/agent-reviews.js *) Bash(gh pr view *)
+compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
+allowed-tools: Bash(npx agent-reviews *) Bash(pnpm exec agent-reviews *) Bash(yarn exec agent-reviews *) Bash(bunx agent-reviews *) Bash(git config *) Bash(git add *) Bash(git commit *) Bash(git push *)
 metadata:
   author: pbakaus
-  version: "0.6.0"
+  version: "1.0.0"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
-Automatically review, fix, and respond to findings from PR review bots on the current PR. Uses a deterministic two-phase workflow: first fix all existing issues, then poll once for new ones.
+Automatically resolve findings from PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) on the current PR. Uses a two-phase workflow: fix all existing issues, then poll for new ones until bots go quiet.
 
-**Path note:** All `scripts/agent-reviews.js` references below are relative to this skill's directory (next to this SKILL.md file). Run them with `node`.
+## Prerequisites
+
+All commands below use `npx agent-reviews`. If the project uses a different package manager, substitute the appropriate runner (e.g., `pnpm exec agent-reviews` for pnpm, `yarn exec agent-reviews` for Yarn, `bunx agent-reviews` for Bun). Honor the user's package manager preference throughout.
+
+**Cloud environments only** (e.g., Codespaces, remote agents): verify git author identity so CI checks can map commits to the user. Run `git config --global --get user.email` and if empty or a placeholder, set it manually. Skip this check in local environments.
 
 ## Phase 1: FETCH & FIX (synchronous)
 
-### Step 1: Identify Current PR
+### Step 1: Fetch All Bot Comments (Expanded)
 
-```bash
-gh pr view --json number,url,headRefName
-```
+Run `npx agent-reviews --bots-only --unanswered --expanded`
 
-If no PR exists, notify the user and exit.
-
-### Step 2: Fetch All Bot Comments (Expanded)
-
-Run `scripts/agent-reviews.js --bots-only --unanswered --expanded`
+The CLI auto-detects the current branch, finds the associated PR, and authenticates via `gh` CLI or environment variables. If anything fails (no token, no PR, CLI not installed), it exits with a clear error message.
 
 This shows only unanswered bot comments with full detail: complete comment body (no truncation), diff hunk (code context), and all replies. Each comment shows its ID in brackets (e.g., `[12345678]`).
 
@@ -58,7 +56,7 @@ Read the referenced code and determine:
 - The "bug" is actually a feature or intentional behavior
 - Bot misread the code flow
 
-**When UNCERTAIN — use `AskUserQuestion`:**
+**When UNCERTAIN -- ask the user:**
 - The fix would require architectural changes
 - You're genuinely unsure if the behavior is intentional
 - The "bug" relates to business logic you don't fully understand
@@ -71,7 +69,7 @@ Read the referenced code and determine:
 
 **If FALSE POSITIVE:** Do NOT change the code. Track the comment ID and the reason it's not a real bug.
 
-**If UNCERTAIN:** Use `AskUserQuestion`. If the user says skip, track it as skipped.
+**If UNCERTAIN:** Ask the user. If they say skip, track it as skipped.
 
 Do NOT reply to comments yet. Replies happen after the commit (Step 5).
 
@@ -92,19 +90,19 @@ After evaluating and fixing ALL unanswered comments:
 
 ### Step 5: Reply to All Comments
 
-Now that the commit hash exists, reply to every processed comment:
+Now that the commit hash exists, reply to every processed comment. The `--resolve` flag marks the review thread as resolved on GitHub.
 
 **For each TRUE POSITIVE:**
 
-Run `scripts/agent-reviews.js --reply <comment_id> "Fixed in {hash}. {Brief description of the fix}"`
+Run `npx agent-reviews --reply <comment_id> "Fixed in {hash}. {Brief description of the fix}" --resolve`
 
 **For each FALSE POSITIVE:**
 
-Run `scripts/agent-reviews.js --reply <comment_id> "Won't fix: {reason}. {Explanation of why this is intentional or not applicable}"`
+Run `npx agent-reviews --reply <comment_id> "Won't fix: {reason}. {Explanation of why this is intentional or not applicable}" --resolve`
 
 **For each SKIPPED:**
 
-Run `scripts/agent-reviews.js --reply <comment_id> "Skipped per user request"`
+Run `npx agent-reviews --reply <comment_id> "Skipped per user request" --resolve`
 
 **DO NOT start Phase 2 until all replies are posted.**
 
@@ -120,9 +118,9 @@ Repeat the following until the watcher exits with no new comments:
 
 **6a.** Launch the watcher in the background:
 
-Run `scripts/agent-reviews.js --watch --bots-only` as a background task.
+Run `npx agent-reviews --watch --bots-only` as a background task.
 
-**6b.** Use `TaskOutput` to wait for the watcher to complete (blocks up to 12 minutes).
+**6b.** Wait for the background command to complete (default 10 minutes; override with `--timeout`).
 
 **6c.** Check the output:
 
@@ -140,7 +138,7 @@ Run `scripts/agent-reviews.js --watch --bots-only` as a background task.
 
 After both phases complete, provide a summary:
 
-```
+```text
 ## PR Review Bot Resolution Summary
 
 ### Results
@@ -158,7 +156,7 @@ After both phases complete, provide a summary:
 - {description} - Fixed in {commit}
 
 ### Status
-✅ All findings addressed. Watch completed.
+All findings addressed. Watch completed.
 ```
 
 ## Important Notes
@@ -169,7 +167,7 @@ After both phases complete, provide a summary:
 - "Won't fix" responses prevent the same false positive from being re-raised
 
 ### User Interaction
-- Use `AskUserQuestion` when uncertain about a finding
+- Ask the user when uncertain about a finding
 - Don't guess on architectural or business logic questions
 - It's better to ask than to make a wrong fix or wrong dismissal
 

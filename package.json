@@ -1,7 +1,7 @@
 {
   "name": "agent-reviews",
-  "version": "0.6.0",
-  "description": "CLI and Claude Code skill for managing GitHub PR review comments. List, filter, reply, and watch for bot findings.",
+  "version": "1.0.0",
+  "description": "CLI and agent skills for managing GitHub PR review comments. List, filter, reply, and watch for bot findings.",
   "license": "MIT",
   "author": "Paul Bakaus",
   "repository": {
@@ -13,8 +13,8 @@
     "pull-request",
     "code-review",
     "cli",
-    "claude-code",
     "ai-agent",
+    "agent-skill",
     "pr-comments",
     "review-bot"
   ],
@@ -28,7 +28,8 @@
     ".claude-plugin/"
   ],
   "scripts": {
-    "build:skill": "node scripts/build-skill.js",
+    "install-skills": "node scripts/install-skills.js",
+    "prepare": "node scripts/install-skills.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
