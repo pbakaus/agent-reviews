@@ -491,18 +491,20 @@ async function main() {
           proxyFetch
         );
 
-        if (resolveResult.resolved) {
-          console.log(
-            `${colors.green}✓ Thread resolved${colors.reset}`
-          );
-        } else if (resolveResult.alreadyResolved) {
-          console.log(
-            `${colors.dim}Thread already resolved${colors.reset}`
-          );
-        } else if (resolveResult.skipped) {
-          console.log(
-            `${colors.dim}Thread resolution skipped (${resolveResult.reason})${colors.reset}`
-          );
+        if (!options.json) {
+          if (resolveResult.resolved) {
+            console.log(
+              `${colors.green}✓ Thread resolved${colors.reset}`
+            );
+          } else if (resolveResult.alreadyResolved) {
+            console.log(
+              `${colors.dim}Thread already resolved${colors.reset}`
+            );
+          } else if (resolveResult.skipped) {
+            console.log(
+              `${colors.dim}Thread resolution skipped (${resolveResult.reason})${colors.reset}`
+            );
+          }
         }
       } catch (error) {
         console.warn(

@@ -140,7 +140,7 @@ Repeat the following until the watcher exits with no new comments:
 
 Run `npx agent-reviews --watch --humans-only` as a background task.
 
-**6b.** Wait for the background command to complete (up to 12 minutes).
+**6b.** Wait for the background command to complete (default 10 minutes; override with `--timeout`).
 
 **6c.** Check the output:
 
@@ -158,7 +158,7 @@ Run `npx agent-reviews --watch --humans-only` as a background task.
 
 After both phases complete, provide a summary:
 
-```
+```text
 ## PR Review Resolution Summary
 
 ### Results

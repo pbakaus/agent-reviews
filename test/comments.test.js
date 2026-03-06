@@ -320,6 +320,15 @@ describe("isMetaComment", () => {
     ).toBe(true);
   });
 
+  it("filters CodeRabbit review body summaries", () => {
+    expect(
+      isMetaComment(
+        "coderabbitai[bot]",
+        '**Actionable comments posted: 3**\n\n<details>\n<summary>Nitpick comments (1)</summary>'
+      )
+    ).toBe(true);
+  });
+
   it("does not filter CodeRabbit inline findings", () => {
     expect(
       isMetaComment(
