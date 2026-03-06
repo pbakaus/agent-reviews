@@ -320,15 +320,6 @@ describe("isMetaComment", () => {
     ).toBe(true);
   });
 
-  it("filters CodeRabbit review body summaries", () => {
-    expect(
-      isMetaComment(
-        "coderabbitai[bot]",
-        '**Actionable comments posted: 3**\n\n<details>\n<summary>Nitpick comments (1)</summary>'
-      )
-    ).toBe(true);
-  });
-
   it("does not filter CodeRabbit inline findings", () => {
     expect(
       isMetaComment(
@@ -556,6 +547,47 @@ describe("processComments", () => {
     const result = processComments(data);
     expect(result[0].id).toBe(2);
     expect(result[1].id).toBe(1);
+  });
+
+  it("excludes bot review bodies (summaries)", () => {
+    const data = {
+      reviewComments: [],
+      issueComments: [],
+      reviews: [
+        {
+          id: 100,
+          user: { login: "coderabbitai[bot]" },
+          body: "**Actionable comments posted: 3**\n\nSome summary...",
+          state: "COMMENTED",
+          submitted_at: "2025-01-01T00:00:00Z",
+          html_url: "https://github.com/org/repo/pull/1#pullrequestreview-100",
+        },
+      ],
+    };
+
+    const result = processComments(data);
+    expect(result).toHaveLength(0);
+  });
+
+  it("keeps human review bodies", () => {
+    const data = {
+      reviewComments: [],
+      issueComments: [],
+      reviews: [
+        {
+          id: 200,
+          user: { login: "reviewer" },
+          body: "Looks good overall, just a few nits.",
+          state: "COMMENTED",
+          submitted_at: "2025-01-01T00:00:00Z",
+          html_url: "https://github.com/org/repo/pull/1#pullrequestreview-200",
+        },
+      ],
+    };
+
+    const result = processComments(data);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(200);
   });
 });
 

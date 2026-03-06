@@ -133,7 +133,7 @@ agent-reviews fetches three types of GitHub PR comments:
 
 ### Meta-comment filtering
 
-Status updates and summaries from bots are automatically filtered out so only actionable findings are shown:
+Bot review bodies (`REVIEW` type) are always filtered out since actionable findings come through as inline comments. Additionally, these bot issue comments are filtered:
 
 | Bot | What's filtered |
 |-----|----------------|
