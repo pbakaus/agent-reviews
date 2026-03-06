@@ -3,7 +3,7 @@ name: resolve-reviews
 description: Resolve all PR review comments (human and bot) on current PR. Fetches unanswered comments, evaluates each one, fixes real issues, dismisses false positives, and replies to every comment with the outcome.
 license: MIT
 compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
-allowed-tools: Bash(npx agent-reviews *) Bash(gh pr view *) Bash(git branch --show-current)
+allowed-tools: Bash(npx agent-reviews *) Bash(pnpm exec agent-reviews *) Bash(yarn exec agent-reviews *) Bash(bunx agent-reviews *) Bash(gh pr view *) Bash(git branch --show-current)
 metadata:
   author: pbakaus
   version: "1.0.0"

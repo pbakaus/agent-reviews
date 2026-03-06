@@ -28,8 +28,17 @@ for (const name of SKILL_DIRS) {
 
   let content = fs.readFileSync(path.join(SRC, name, "SKILL.md"), "utf8");
 
-  // Patch all npx agent-reviews references to use local CLI binary
+  // Patch all package runner references to use local CLI binary
   content = content.replaceAll("npx agent-reviews", `node ${LOCAL_CLI}`);
+  content = content.replaceAll("pnpm exec agent-reviews", `node ${LOCAL_CLI}`);
+  content = content.replaceAll("yarn exec agent-reviews", `node ${LOCAL_CLI}`);
+  content = content.replaceAll("bunx agent-reviews", `node ${LOCAL_CLI}`);
+
+  // Deduplicate allowed-tools after patching (all runners become the same)
+  content = content.replace(
+    /^(allowed-tools:).*$/m,
+    `$1 Bash(node ${LOCAL_CLI} *) Bash(gh pr view *) Bash(git branch --show-current)`
+  );
 
   // Remove the package manager substitution note (irrelevant in local dev)
   content = content.replace(

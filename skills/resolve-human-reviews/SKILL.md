@@ -3,7 +3,7 @@ name: resolve-human-reviews
 description: Resolve human PR review comments on current PR. Fetches unanswered human comments, evaluates each piece of feedback, applies fixes, and replies to every comment with the outcome.
 license: MIT
 compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
-allowed-tools: Bash(npx agent-reviews *) Bash(gh pr view *) Bash(git branch --show-current)
+allowed-tools: Bash(npx agent-reviews *) Bash(pnpm exec agent-reviews *) Bash(yarn exec agent-reviews *) Bash(bunx agent-reviews *) Bash(gh pr view *) Bash(git branch --show-current)
 metadata:
   author: pbakaus
   version: "1.0.0"
