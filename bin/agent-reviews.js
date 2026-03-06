@@ -11,6 +11,7 @@
  *   agent-reviews --unresolved           # List unresolved comments only
  *   agent-reviews --unanswered           # List comments without replies
  *   agent-reviews --reply <id> "msg"     # Reply to a specific comment
+ *   agent-reviews --reply <id> "msg" --resolve  # Reply and resolve the thread
  *   agent-reviews --detail <id>          # Show full detail (no truncation)
  *   agent-reviews --json                 # Output as JSON for scripting
  *   agent-reviews --watch                # Watch for new comments (poll mode)
@@ -34,6 +35,7 @@ const {
   processComments,
   filterComments,
   replyToComment,
+  resolveThread,
 } = require("../lib/comments");
 
 const {
@@ -64,6 +66,7 @@ function parseArgs() {
     help: false,
     version: false,
     expanded: false,
+    resolve: false,
     watch: false,
     watchInterval: 30,
     watchTimeout: 600,
@@ -80,11 +83,18 @@ function parseArgs() {
         result.filter = "unanswered";
         break;
       case "--reply":
-      case "-r":
+      case "-r": {
         result.command = "reply";
-        result.replyTo = args[++i];
-        result.replyMessage = args[++i];
+        // Consume the next non-flag arg as the comment ID
+        if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+          result.replyTo = args[++i];
+        }
+        // Consume the next non-flag arg as the message
+        if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+          result.replyMessage = args[++i];
+        }
         break;
+      }
       case "--pr":
       case "-p":
         result.prNumber = Number.parseInt(args[++i], 10);
@@ -123,6 +133,9 @@ function parseArgs() {
       case "-e":
         result.expanded = true;
         break;
+      case "--resolve":
+        result.resolve = true;
+        break;
       case "--help":
       case "-h":
         result.help = true;
@@ -132,6 +145,14 @@ function parseArgs() {
         result.version = true;
         break;
       default:
+        // Collect positional args for commands that need them
+        if (result.command === "reply" && !args[i].startsWith("-")) {
+          if (!result.replyTo) {
+            result.replyTo = args[i];
+          } else if (!result.replyMessage) {
+            result.replyMessage = args[i];
+          }
+        }
         break;
     }
   }
@@ -150,6 +171,7 @@ ${colors.bright}Usage:${colors.reset}
   agent-reviews --unresolved           List unresolved comments only
   agent-reviews --unanswered           List comments without replies
   agent-reviews --reply <id> "msg"     Reply to a specific comment
+  agent-reviews --reply <id> "msg" --resolve  Reply and resolve thread
   agent-reviews --detail <id>          Show full detail for a comment
   agent-reviews --expanded             Show full detail for each comment
   agent-reviews --watch                Watch for new comments (poll mode)
@@ -165,6 +187,7 @@ ${colors.bright}Options:${colors.reset}
   -b, --bots-only    Only show comments from bots
   -H, --humans-only  Only show comments from humans
   -e, --expanded     Show full detail (body, diff hunk, replies) for each comment
+      --resolve      Resolve the review thread after replying (use with --reply)
   -h, --help         Show this help
   -v, --version      Show version
 
@@ -455,6 +478,31 @@ async function main() {
         `${colors.green}✓ Reply posted successfully${colors.reset}`
       );
       console.log(`  ${colors.dim}${result.html_url}${colors.reset}`);
+    }
+
+    if (options.resolve) {
+      const resolveResult = await resolveThread(
+        repoInfo.owner,
+        repoInfo.repo,
+        prNumber,
+        options.replyTo,
+        token,
+        proxyFetch
+      );
+
+      if (resolveResult.resolved) {
+        console.log(
+          `${colors.green}✓ Thread resolved${colors.reset}`
+        );
+      } else if (resolveResult.alreadyResolved) {
+        console.log(
+          `${colors.dim}Thread already resolved${colors.reset}`
+        );
+      } else if (resolveResult.skipped) {
+        console.log(
+          `${colors.dim}Thread resolution skipped (${resolveResult.reason})${colors.reset}`
+        );
+      }
     }
 
     return;

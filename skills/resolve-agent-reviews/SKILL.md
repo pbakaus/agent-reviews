@@ -112,19 +112,19 @@ After evaluating and fixing ALL unanswered comments:
 
 ### Step 5: Reply to All Comments
 
-Now that the commit hash exists, reply to every processed comment:
+Now that the commit hash exists, reply to every processed comment. The `--resolve` flag marks the review thread as resolved on GitHub.
 
 **For each TRUE POSITIVE:**
 
-Run `npx agent-reviews --reply <comment_id> "Fixed in {hash}. {Brief description of the fix}"`
+Run `npx agent-reviews --reply <comment_id> "Fixed in {hash}. {Brief description of the fix}" --resolve`
 
 **For each FALSE POSITIVE:**
 
-Run `npx agent-reviews --reply <comment_id> "Won't fix: {reason}. {Explanation of why this is intentional or not applicable}"`
+Run `npx agent-reviews --reply <comment_id> "Won't fix: {reason}. {Explanation of why this is intentional or not applicable}" --resolve`
 
 **For each SKIPPED:**
 
-Run `npx agent-reviews --reply <comment_id> "Skipped per user request"`
+Run `npx agent-reviews --reply <comment_id> "Skipped per user request" --resolve`
 
 **DO NOT start Phase 2 until all replies are posted.**
 
