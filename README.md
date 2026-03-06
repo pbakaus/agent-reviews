@@ -138,13 +138,18 @@ agent-reviews fetches three types of GitHub PR comments:
 
 ### Meta-comment filtering
 
-Status updates from bots are automatically filtered out:
+Status updates and summaries from bots are automatically filtered out so only actionable findings are shown:
 
-- Vercel deployment status (`[vc]:...`)
-- Supabase branch status (`[supa]:...`)
-- Cursor Bugbot summary ("Cursor Bugbot has reviewed your changes...")
-
-Only actionable findings are shown.
+| Bot | What's filtered |
+|-----|----------------|
+| Vercel | Deployment status (`[vc]:...`) |
+| Supabase | Branch status (`[supa]:...`) |
+| Cursor Bugbot | Review summary ("Cursor Bugbot has reviewed your changes...") |
+| Copilot | PR review summary ("Pull request overview") |
+| CodeRabbit | Walkthrough, summary, and "review skipped" comments |
+| Sourcery | Reviewer's guide and PR summary |
+| Codacy | Analysis summary and coverage summary |
+| SonarCloud | Quality Gate pass/fail summary |
 
 ### Reply status
 
@@ -159,6 +164,38 @@ Each comment displays its reply status:
 ### Watch mode
 
 Polls the GitHub API at a configurable interval and reports new comments as they appear. Outputs both formatted text and JSON for AI agent consumption. Exits automatically after a configurable inactivity timeout (default: 10 minutes).
+
+## Changelog
+
+### 1.0.0
+
+**Three skills instead of one.** The single `agent-reviews` skill has been split into three, each tailored for different workflows:
+
+- `resolve-reviews` resolves all comments (human + bot)
+- `resolve-agent-reviews` resolves bot comments only
+- `resolve-human-reviews` resolves human comments only
+
+**Thread resolution.** The new `--resolve` flag marks GitHub review threads as resolved after replying. Uses the GraphQL `resolveReviewThread` mutation. Works with `--reply` in any argument order.
+
+**Expanded bot support.** Added detection and meta-comment filtering for CodeRabbit, Sourcery, Codacy, SonarCloud/SonarQube Cloud, and Copilot PR reviewer, in addition to the existing Cursor Bugbot, Vercel, and Supabase filters.
+
+**Agent-harness universal.** Skills now work with any agent that supports [Agent Skills](https://agentskills.io) (Claude Code, Cursor, Codex, etc.), not just Claude Code.
+
+**Watch mode improvements.** The watcher now exits immediately when new comments are found (with a 5s grace period for batch posts), designed for loop-based workflows where the agent processes comments and restarts the watcher.
+
+**New CLI options:**
+
+- `--resolve` resolves the review thread after replying (use with `--reply`)
+- `--expanded` / `-e` shows full detail (body, diff hunk, replies) for each comment in list mode
+
+**Cloud and proxy support:**
+
+- `GH_TOKEN` environment variable support (in addition to `GITHUB_TOKEN`)
+- `GH_REPO` environment variable for targeting repos in detached environments
+- Curl-based HTTP fallback for environments without native fetch/undici
+- Curl requests include timeouts (10s connect, 60s max)
+
+**Simplified architecture.** Skills now invoke `npx agent-reviews` at runtime instead of bundling their own scripts, reducing the package from ~4000 lines of duplicated code to a single CLI entry point.
 
 ## License
 
