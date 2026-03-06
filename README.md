@@ -36,7 +36,7 @@ Works with any agent that supports [Agent Skills](https://agentskills.io) (Claud
 npx skills add pbakaus/agent-reviews@resolve-agent-reviews
 ```
 
-Replace `resolve-agent-reviews` with whichever skill you want. Each skill bundles its own scripts, so nothing is downloaded at runtime.
+Replace `resolve-agent-reviews` with whichever skill you want. Skills use `npx agent-reviews` at runtime, so the CLI is fetched automatically.
 
 > You can also use both: install the CLI globally for direct terminal use, and a skill for the agent workflow.
 

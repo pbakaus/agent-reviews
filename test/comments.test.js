@@ -266,6 +266,33 @@ describe("isMetaComment", () => {
     ).toBe(false);
     expect(isMetaComment("vercel", "Build failed: see logs")).toBe(false);
   });
+
+  it("filters Copilot PR review summary comments", () => {
+    expect(
+      isMetaComment(
+        "copilot-pull-request-reviewer[bot]",
+        "## Pull request overview\n\nSome summary of the PR changes."
+      )
+    ).toBe(true);
+  });
+
+  it("filters Copilot PR review summary without [bot] suffix", () => {
+    expect(
+      isMetaComment(
+        "copilot-pull-request-reviewer",
+        "## Pull request overview\n\nSome summary of the PR changes."
+      )
+    ).toBe(true);
+  });
+
+  it("does not filter Copilot inline findings", () => {
+    expect(
+      isMetaComment(
+        "copilot-pull-request-reviewer[bot]",
+        "This function is missing error handling for the case when..."
+      )
+    ).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
