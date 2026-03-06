@@ -8,7 +8,7 @@ PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) leave inline comments 
 
 **`gh` CLI is fragile for review comments.** Agents frequently get the syntax wrong, fail to paginate, and can't reliably detect whether a comment has been replied to. agent-reviews provides a single, purpose-built interface that handles all of this correctly.
 
-**Bot reviews create a doom loop.** You fix one round of findings, push, and new comments appear. Fix those, push again, more comments. This cycle can eat hours. The included skill solves it with an integrated watcher that keeps fixing and replying until the bots go quiet.
+**Bot reviews create a doom loop.** You fix one round of findings, push, and new comments appear. Fix those, push again, more comments. This cycle can eat hours. The included skills solve this with an integrated watcher that keeps fixing and replying until the bots go quiet.
 
 **Works in cloud environments.** Most solutions rely on local tooling that isn't available in cloud or remote agent environments. agent-reviews works everywhere, so you can kick off a session, let the agent resolve all findings autonomously, and come back to a clean PR.
 
@@ -42,14 +42,9 @@ Replace `resolve-agent-reviews` with whichever skill you want. Skills use `npx a
 
 ## Authentication
 
-The primary authentication method is the **GitHub CLI**. If you're logged in with `gh auth login`, agent-reviews picks up the token automatically. No configuration needed.
+The simplest method is the **GitHub CLI**. If you're logged in with `gh auth login`, agent-reviews picks up the token automatically. No configuration needed.
 
-For environments where `gh` isn't available (like cloud/remote agents that route git through an HTTPS proxy), agent-reviews falls back to:
-
-1. `GITHUB_TOKEN` or `GH_TOKEN` environment variable
-2. `.env.local` in the repo root
-
-The proxy environment is also why agent-reviews includes [undici](https://github.com/nodejs/undici) `ProxyAgent` support. When `HTTPS_PROXY` is set, GitHub API requests are routed through it automatically.
+For cloud/remote environments or HTTPS proxy setups, set `GITHUB_TOKEN` or `GH_TOKEN` directly. agent-reviews includes [undici](https://github.com/nodejs/undici) `ProxyAgent` support and will route requests through `HTTPS_PROXY` automatically when set.
 
 **Resolution order** (first match wins):
 
