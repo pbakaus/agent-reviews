@@ -37,7 +37,7 @@ for (const name of SKILL_DIRS) {
   // Deduplicate allowed-tools after patching (all runners become the same)
   content = content.replace(
     /^(allowed-tools:).*$/m,
-    `$1 Bash(node ${LOCAL_CLI} *) Bash(gh pr view *) Bash(git branch --show-current)`
+    `$1 Bash(node ${LOCAL_CLI} *) Bash(gh pr view *) Bash(git branch --show-current) Bash(git config *) Bash(git add *) Bash(git commit *) Bash(git push *)`
   );
 
   // Remove the package manager substitution note (irrelevant in local dev)

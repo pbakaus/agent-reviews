@@ -46,7 +46,7 @@ The primary authentication method is the **GitHub CLI**. If you're logged in wit
 
 For environments where `gh` isn't available (like cloud/remote agents that route git through an HTTPS proxy), agent-reviews falls back to:
 
-1. `GITHUB_TOKEN` environment variable
+1. `GITHUB_TOKEN` or `GH_TOKEN` environment variable
 2. `.env.local` in the repo root
 
 The proxy environment is also why agent-reviews includes [undici](https://github.com/nodejs/undici) `ProxyAgent` support. When `HTTPS_PROXY` is set, GitHub API requests are routed through it automatically.
@@ -93,6 +93,7 @@ agent-reviews --pr 42
 | `--unresolved` | `-u` | Only unresolved/pending comments |
 | `--unanswered` | `-a` | Only comments without any replies |
 | `--reply <id> "msg"` | `-r` | Reply to a comment |
+| `--resolve` | | Resolve the review thread after replying (use with `--reply`) |
 | `--detail <id>` | `-d` | Full detail for a comment |
 | `--pr <number>` | `-p` | Target a specific PR |
 | `--json` | `-j` | JSON output |

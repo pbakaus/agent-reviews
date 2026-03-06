@@ -481,26 +481,32 @@ async function main() {
     }
 
     if (options.resolve) {
-      const resolveResult = await resolveThread(
-        repoInfo.owner,
-        repoInfo.repo,
-        prNumber,
-        options.replyTo,
-        token,
-        proxyFetch
-      );
+      try {
+        const resolveResult = await resolveThread(
+          repoInfo.owner,
+          repoInfo.repo,
+          prNumber,
+          options.replyTo,
+          token,
+          proxyFetch
+        );
 
-      if (resolveResult.resolved) {
-        console.log(
-          `${colors.green}✓ Thread resolved${colors.reset}`
-        );
-      } else if (resolveResult.alreadyResolved) {
-        console.log(
-          `${colors.dim}Thread already resolved${colors.reset}`
-        );
-      } else if (resolveResult.skipped) {
-        console.log(
-          `${colors.dim}Thread resolution skipped (${resolveResult.reason})${colors.reset}`
+        if (resolveResult.resolved) {
+          console.log(
+            `${colors.green}✓ Thread resolved${colors.reset}`
+          );
+        } else if (resolveResult.alreadyResolved) {
+          console.log(
+            `${colors.dim}Thread already resolved${colors.reset}`
+          );
+        } else if (resolveResult.skipped) {
+          console.log(
+            `${colors.dim}Thread resolution skipped (${resolveResult.reason})${colors.reset}`
+          );
+        }
+      } catch (error) {
+        console.warn(
+          `${colors.yellow}Reply posted, but thread resolution failed: ${error.message}${colors.reset}`
         );
       }
     }
