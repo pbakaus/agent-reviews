@@ -3,10 +3,10 @@ name: resolve-human-reviews
 description: Resolve human PR review comments on current PR. Fetches unanswered human comments, evaluates each piece of feedback, applies fixes, and replies to every comment with the outcome.
 license: MIT
 compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
-allowed-tools: Bash(npx agent-reviews *) Bash(pnpm exec agent-reviews *) Bash(yarn exec agent-reviews *) Bash(bunx agent-reviews *) Bash(git config *) Bash(git add *) Bash(git commit *) Bash(git push *)
+allowed-tools: Bash(npx agent-reviews *) Bash(pnpm dlx agent-reviews *) Bash(yarn dlx agent-reviews *) Bash(bunx agent-reviews *) Bash(git config *) Bash(git add *) Bash(git commit *) Bash(git push *)
 metadata:
   author: pbakaus
-  version: "1.0.0"
+  version: "1.0.1"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
@@ -14,7 +14,7 @@ Automatically resolve human review comments on the current PR. Fetches unanswere
 
 ## Prerequisites
 
-All commands below use `npx agent-reviews`. If the project uses a different package manager, substitute the appropriate runner (e.g., `pnpm exec agent-reviews` for pnpm, `yarn exec agent-reviews` for Yarn, `bunx agent-reviews` for Bun). Honor the user's package manager preference throughout.
+All commands below use `npx agent-reviews`. If the project uses a different package manager, substitute the appropriate runner (e.g., `pnpm dlx agent-reviews` for pnpm, `yarn dlx agent-reviews` for Yarn, `bunx agent-reviews` for Bun). Honor the user's package manager preference throughout.
 
 **Cloud environments only** (e.g., Codespaces, remote agents): verify git author identity so CI checks can map commits to the user. Run `git config --global --get user.email` and if empty or a placeholder, set it manually. Skip this check in local environments.
 
