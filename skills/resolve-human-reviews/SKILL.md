@@ -35,8 +35,10 @@ git branch --show-current
 ```
 
 ```bash
-gh pr view <branch-name> ${GH_REPO:+--repo "$GH_REPO"} --json number,url,headRefName
+gh pr view <branch-name> --json number,url,headRefName
 ```
+
+If the `GH_REPO` environment variable is set, add `--repo "$GH_REPO"` to the command.
 
 If no PR exists, notify the user and exit.
 
