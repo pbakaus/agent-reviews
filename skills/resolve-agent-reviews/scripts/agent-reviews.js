@@ -368,7 +368,7 @@ async function main() {
   const options = parseArgs();
 
   if (options.version) {
-    console.log("0.5.2");
+    console.log("1.0.0");
     process.exit(0);
   }
 

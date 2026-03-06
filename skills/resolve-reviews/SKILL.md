@@ -2,11 +2,11 @@
 name: resolve-reviews
 description: Resolve all PR review comments (human and bot) on current PR. Fetches unanswered comments, evaluates each one, fixes real issues, dismisses false positives, and replies to every comment with the outcome.
 license: MIT
-compatibility: Requires git and gh (GitHub CLI) installed. Designed for Claude Code.
+compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
 allowed-tools: Bash(node scripts/agent-reviews.js *) Bash(gh pr view *) Bash(git branch --show-current)
 metadata:
   author: pbakaus
-  version: "0.5.2"
+  version: "1.0.0"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
@@ -30,7 +30,7 @@ gh pr view <branch-name> ${GH_REPO:+--repo "$GH_REPO"} --json number,url,headRef
 
 If no PR exists, notify the user and exit.
 
-**Cloud environments only** (`CLAUDE_CODE_REMOTE=true` or `CODESPACES=true`): verify git author identity so Vercel and GitHub checks can map commits to the user. Run `git config --global --get user.email` and if empty or a placeholder (e.g., `noreply@anthropic.com`), run `scripts/cloud-setup.sh` or set it manually. Skip this check in local environments.
+**Cloud environments only** (e.g., Codespaces, remote agents): verify git author identity so CI checks can map commits to the user. Run `git config --global --get user.email` and if empty or a placeholder, set it manually. Skip this check in local environments.
 
 ### Step 2: Fetch All Comments (Expanded)
 
@@ -79,12 +79,12 @@ Read the referenced code and the reviewer's comment. Human reviewers are general
 - Reviewer requests a specific code change
 - Reviewer identifies missing edge cases or error handling
 
-**Likely DISCUSSION -- use `AskUserQuestion`:**
+**Likely DISCUSSION -- ask the user:**
 - Reviewer suggests an architectural change you're unsure about
 - Comment involves a tradeoff (performance vs readability, etc.)
 - The feedback is subjective without team consensus
 
-#### When UNCERTAIN -- use `AskUserQuestion`
+#### When UNCERTAIN -- ask the user
 
 For both bot and human comments:
 - The fix would require architectural changes
@@ -98,11 +98,11 @@ For both bot and human comments:
 
 **If FALSE POSITIVE:** Do NOT change the code. Track the comment ID and the reason it's not a real bug.
 
-**If DISCUSSION:** Use `AskUserQuestion` to consult the PR author. Apply their decision and track it.
+**If DISCUSSION:** Ask the user to consult the PR author. Apply their decision and track it.
 
 **If ALREADY ADDRESSED:** Track the comment ID and note why.
 
-**If UNCERTAIN:** Use `AskUserQuestion`. If the user says skip, track it as skipped.
+**If UNCERTAIN:** Ask the user. If they say skip, track it as skipped.
 
 Do NOT reply to comments yet. Replies happen after the commit (Step 5).
 
@@ -161,7 +161,7 @@ Repeat the following until the watcher exits with no new comments:
 
 Run `scripts/agent-reviews.js --watch` as a background task.
 
-**6b.** Use `TaskOutput` to wait for the watcher to complete (blocks up to 12 minutes).
+**6b.** Wait for the background command to complete (up to 12 minutes).
 
 **6c.** Check the output:
 
@@ -209,7 +209,7 @@ All findings addressed. Watch completed.
 - For humans: replies keep reviewers informed and unblock approvals
 
 ### User Interaction
-- Use `AskUserQuestion` when uncertain about a finding
+- Ask the user when uncertain about a finding
 - Don't guess on architectural or business logic questions
 - It's better to ask than to make a wrong fix or wrong dismissal
 - Human reviewers often have context you don't - defer to the author when unsure

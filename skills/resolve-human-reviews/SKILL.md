@@ -2,11 +2,11 @@
 name: resolve-human-reviews
 description: Resolve human PR review comments on current PR. Fetches unanswered human comments, evaluates each piece of feedback, applies fixes, and replies to every comment with the outcome.
 license: MIT
-compatibility: Requires git and gh (GitHub CLI) installed. Designed for Claude Code.
+compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
 allowed-tools: Bash(node scripts/agent-reviews.js *) Bash(gh pr view *) Bash(git branch --show-current)
 metadata:
   author: pbakaus
-  version: "0.5.2"
+  version: "1.0.0"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
@@ -30,7 +30,7 @@ gh pr view <branch-name> ${GH_REPO:+--repo "$GH_REPO"} --json number,url,headRef
 
 If no PR exists, notify the user and exit.
 
-**Cloud environments only** (`CLAUDE_CODE_REMOTE=true` or `CODESPACES=true`): verify git author identity so Vercel and GitHub checks can map commits to the user. Run `git config --global --get user.email` and if empty or a placeholder (e.g., `noreply@anthropic.com`), run `scripts/cloud-setup.sh` or set it manually. Skip this check in local environments.
+**Cloud environments only** (e.g., Codespaces, remote agents): verify git author identity so CI checks can map commits to the user. Run `git config --global --get user.email` and if empty or a placeholder, set it manually. Skip this check in local environments.
 
 ### Step 2: Fetch All Human Comments (Expanded)
 
@@ -59,7 +59,7 @@ Read the referenced code and the reviewer's comment. Human reviewers are general
 - Reviewer flags a naming, API, or architectural concern with a clear fix
 - Reviewer suggests a better approach with justification
 
-**Likely DISCUSSION -- use `AskUserQuestion`:**
+**Likely DISCUSSION -- ask the user:**
 - Reviewer suggests an architectural change you're unsure about
 - Comment involves a tradeoff (performance vs readability, etc.)
 - Reviewer's suggestion conflicts with patterns used elsewhere in the codebase
@@ -75,7 +75,7 @@ Read the referenced code and the reviewer's comment. Human reviewers are general
 
 **If ACTIONABLE:** Fix the code. Track the comment ID and a brief description of the fix.
 
-**If DISCUSSION:** Use `AskUserQuestion` to consult the PR author. Apply their decision and track it.
+**If DISCUSSION:** Ask the user to consult the PR author. Apply their decision and track it.
 
 **If ALREADY ADDRESSED:** Track the comment ID and note why.
 
@@ -128,7 +128,7 @@ Repeat the following until the watcher exits with no new comments:
 
 Run `scripts/agent-reviews.js --watch --humans-only` as a background task.
 
-**6b.** Use `TaskOutput` to wait for the watcher to complete (blocks up to 12 minutes).
+**6b.** Wait for the background command to complete (up to 12 minutes).
 
 **6c.** Check the output:
 
@@ -172,7 +172,7 @@ All review comments addressed. Watch completed.
 - Even "already addressed" comments deserve acknowledgement
 
 ### User Interaction
-- Use `AskUserQuestion` when the right approach is unclear
+- Ask the user when the right approach is unclear
 - Human reviewers often have context you don't - defer to the author when unsure
 - It's better to ask than to make a change the author wouldn't approve
 

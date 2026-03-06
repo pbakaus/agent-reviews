@@ -2,7 +2,7 @@
 
 Manage GitHub PR review comments from the terminal and from AI coding agents.
 
-PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) leave inline comments on your pull requests. agent-reviews gives you a CLI to list, filter, reply to, and watch those comments, plus a Claude Code skill that automates the entire triage-fix-reply loop.
+PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) leave inline comments on your pull requests. agent-reviews gives you a CLI to list, filter, reply to, and watch those comments, plus agent skills that automate the entire triage-fix-reply loop.
 
 ## Why
 
@@ -10,7 +10,7 @@ PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) leave inline comments 
 
 **Bot reviews create a doom loop.** You fix one round of findings, push, and new comments appear. Fix those, push again, more comments. This cycle can eat hours. The included skill solves it with an integrated watcher that keeps fixing and replying until the bots go quiet.
 
-**Works in Claude Code for the web.** Most solutions rely on local tooling that isn't available in cloud environments. agent-reviews works everywhere Claude Code runs, so you can kick off a session in your browser, let it resolve all bot findings autonomously, and come back to a clean PR.
+**Works in cloud environments.** Most solutions rely on local tooling that isn't available in cloud or remote agent environments. agent-reviews works everywhere, so you can kick off a session, let the agent resolve all findings autonomously, and come back to a clean PR.
 
 ## Install
 
@@ -30,17 +30,10 @@ Three skills are available, each as a slash command (no npm install required):
 | `resolve-agent-reviews` | Bot comments only (Copilot, Cursor, etc.) |
 | `resolve-human-reviews` | Human comments only |
 
-**Agent-agnostic** (works with any agent that supports [Agent Skills](https://agentskills.io)):
+Works with any agent that supports [Agent Skills](https://agentskills.io) (Claude Code, Cursor, Codex, etc.):
 
 ```bash
 npx skills add pbakaus/agent-reviews@resolve-agent-reviews
-```
-
-**Claude Code plugin**:
-
-```
-/plugin marketplace add pbakaus/agent-reviews
-/plugin install agent-reviews@resolve-agent-reviews
 ```
 
 Replace `resolve-agent-reviews` with whichever skill you want. Each skill bundles its own scripts, so nothing is downloaded at runtime.
@@ -51,7 +44,7 @@ Replace `resolve-agent-reviews` with whichever skill you want. Each skill bundle
 
 The primary authentication method is the **GitHub CLI**. If you're logged in with `gh auth login`, agent-reviews picks up the token automatically. No configuration needed.
 
-For environments where `gh` isn't available (like Claude Code Cloud, which routes git through an HTTPS proxy), agent-reviews falls back to:
+For environments where `gh` isn't available (like cloud/remote agents that route git through an HTTPS proxy), agent-reviews falls back to:
 
 1. `GITHUB_TOKEN` environment variable
 2. `.env.local` in the repo root
@@ -109,7 +102,7 @@ agent-reviews --pr 42
 | `--interval <sec>` | `-i` | Poll interval in seconds (default: 30) |
 | `--timeout <sec>` | | Inactivity timeout in seconds (default: 600) |
 
-## Claude Code Skills
+## Agent Skills
 
 The skills automate the full PR review resolution workflow:
 
@@ -125,7 +118,7 @@ The skills automate the full PR review resolution workflow:
 
 - **True positives / actionable feedback** get fixed and replied with `Fixed in {commit}`
 - **False positives** get replied with `Won't fix: {reason}`
-- **Uncertain findings** prompt the user via `AskUserQuestion`
+- **Uncertain findings** prompt the user for guidance
 - All fixes are batched into a single commit before polling begins
 - Watch mode loops until no new comments appear for 10 minutes
 

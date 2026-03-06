@@ -2,11 +2,11 @@
 name: resolve-agent-reviews
 description: Resolve PR review bot findings on current PR. Fetches unanswered bot comments, evaluates each finding, fixes real bugs, dismisses false positives, replies to every comment, and watches for new findings until bots go quiet.
 license: MIT
-compatibility: Requires git and gh (GitHub CLI) installed. Designed for Claude Code.
+compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
 allowed-tools: Bash(node scripts/agent-reviews.js *) Bash(gh pr view *) Bash(git branch --show-current)
 metadata:
   author: pbakaus
-  version: "0.6.0"
+  version: "1.0.0"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
@@ -30,7 +30,7 @@ gh pr view <branch-name> ${GH_REPO:+--repo "$GH_REPO"} --json number,url,headRef
 
 If no PR exists, notify the user and exit.
 
-**Cloud environments only** (`CLAUDE_CODE_REMOTE=true` or `CODESPACES=true`): verify git author identity so Vercel and GitHub checks can map commits to the user. Run `git config --global --get user.email` and if empty or a placeholder (e.g., `noreply@anthropic.com`), run `scripts/cloud-setup.sh` or set it manually. Skip this check in local environments.
+**Cloud environments only** (e.g., Codespaces, remote agents): verify git author identity so CI checks can map commits to the user. Run `git config --global --get user.email` and if empty or a placeholder, set it manually. Skip this check in local environments.
 
 ### Step 2: Fetch All Bot Comments (Expanded)
 
@@ -66,7 +66,7 @@ Read the referenced code and determine:
 - The "bug" is actually a feature or intentional behavior
 - Bot misread the code flow
 
-**When UNCERTAIN -- use `AskUserQuestion`:**
+**When UNCERTAIN -- ask the user:**
 - The fix would require architectural changes
 - You're genuinely unsure if the behavior is intentional
 - The "bug" relates to business logic you don't fully understand
@@ -79,7 +79,7 @@ Read the referenced code and determine:
 
 **If FALSE POSITIVE:** Do NOT change the code. Track the comment ID and the reason it's not a real bug.
 
-**If UNCERTAIN:** Use `AskUserQuestion`. If the user says skip, track it as skipped.
+**If UNCERTAIN:** Ask the user. If they say skip, track it as skipped.
 
 Do NOT reply to comments yet. Replies happen after the commit (Step 5).
 
@@ -130,7 +130,7 @@ Repeat the following until the watcher exits with no new comments:
 
 Run `scripts/agent-reviews.js --watch --bots-only` as a background task.
 
-**6b.** Use `TaskOutput` to wait for the watcher to complete (blocks up to 12 minutes).
+**6b.** Wait for the background command to complete (up to 12 minutes).
 
 **6c.** Check the output:
 
@@ -177,7 +177,7 @@ All findings addressed. Watch completed.
 - "Won't fix" responses prevent the same false positive from being re-raised
 
 ### User Interaction
-- Use `AskUserQuestion` when uncertain about a finding
+- Ask the user when uncertain about a finding
 - Don't guess on architectural or business logic questions
 - It's better to ask than to make a wrong fix or wrong dismissal
 
