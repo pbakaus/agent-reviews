@@ -31,3 +31,4 @@ skills/resolve-human-reviews/    Skill: human reviews only
 - **Version in three places**: `package.json`, `.claude-plugin/plugin.json`, `skills/*/SKILL.md` frontmatter.
 - Skills use `npx agent-reviews` (no bundled scripts).
 - Keep CLI output minimal. No status messages, only results.
+- **Changelog**: when shipping a new version, add an entry to both `README.md` (under `## Changelog`) and `website/src/lib/components/Changelog.svelte` (new `changelog-entry` div at the top of the list). Keep entries concise, one `<li>` per feature/fix.

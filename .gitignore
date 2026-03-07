@@ -2,4 +2,8 @@ node_modules/
 .env
 .env.local
 *.log
-.claude/skills/
+.claude/
+.agents/
+skills-lock.json
+website/.svelte-kit/
+website/build/
