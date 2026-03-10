@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=Sora:wght@400;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 630px;
+    background: #13131a;
+    font-family: 'Sora', system-ui, sans-serif;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .left {
+    flex: 0 0 420px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 56px 48px 48px;
+    position: relative;
+  }
+
+  /* Accent bar on the left edge */
+  .left::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: #c43a28;
+  }
+
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: #f0ece4;
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    font-size: 17px;
+    font-weight: 400;
+    color: #706a60;
+    line-height: 1.5;
+  }
+
+  .bottom-left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stats {
+    font-size: 14px;
+    color: #706a60;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .stats strong {
+    font-weight: 600;
+    color: #d0cbc2;
+  }
+
+  .stats .sep {
+    color: #3a3a44;
+  }
+
+  .url {
+    font-size: 13px;
+    color: #4a4a54;
+    letter-spacing: 0.01em;
+  }
+
+  /* Terminal panel */
+  .terminal {
+    flex: 1;
+    background: #0d0d12;
+    margin: 32px 32px 32px 0;
+    border-radius: 10px;
+    padding: 24px 28px;
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 13.5px;
+    line-height: 1.9;
+    overflow: hidden;
+    border: 1px solid #1e1e28;
+  }
+
+  .line {
+    white-space: pre;
+  }
+
+  .cmd { color: #f0ece4; font-weight: 600; }
+  .cmd-go { color: #7ee68a; font-weight: 600; }
+  .dim { color: #4a4a54; }
+  .label { color: #d0cbc2; font-weight: 500; }
+  .err { color: #f5827a; }
+  .sigh { color: #e6c860; font-style: italic; }
+  .rule { color: #3a3a44; letter-spacing: 0.15em; }
+  .cyan { color: #78c8de; }
+  .ok { color: #7ee68a; }
+  .skip { color: #706a60; }
+  .done { color: #7ee68a; font-weight: 700; }
+  .blank { height: 1.9em; }
+</style>
+</head>
+<body>
+  <div class="left">
+    <div class="top-left">
+      <h1>agent-<br>reviews</h1>
+      <p class="subtitle">Break the bot review doom loop.</p>
+    </div>
+    <div class="bottom-left">
+      <div class="stats">
+        <span><strong>3</strong> skills</span>
+        <span class="sep">+</span>
+        <span><strong>CLI</strong></span>
+        <span class="sep">+</span>
+        <span>watch mode</span>
+      </div>
+      <div class="url">agent-reviews.com</div>
+    </div>
+  </div>
+
+  <div class="terminal">
+    <div class="line err">  x  Claude       Null check missing on user.email</div>
+    <div class="line err">  x  CodeRabbit   SQL injection risk in query()</div>
+    <div class="line err">  x  Copilot      Unused import 'lodash'</div>
+    <div class="line blank"></div>
+    <div class="line sigh">  this never ends...</div>
+    <div class="line blank"></div>
+    <div class="line rule">  ----</div>
+    <div class="line blank"></div>
+    <div class="line cmd-go">$ /resolve-agent-reviews</div>
+    <div class="line blank"></div>
+    <div class="line cyan">  Fetching unanswered bot comments... found 5</div>
+    <div class="line blank"></div>
+    <div class="line ok">  ok  Fixed: null check on user.email       -> a1b2c3d</div>
+    <div class="line ok">  ok  Fixed: SQL injection in query()       -> a1b2c3d</div>
+    <div class="line skip">  --  Won't fix: style preference            (not a bug)</div>
+    <div class="line ok">  ok  Fixed: error handler in catch          -> e5f6g7h</div>
+    <div class="line ok">  ok  Fixed: reduce complexity               -> e5f6g7h</div>
+    <div class="line blank"></div>
+    <div class="line done">  All findings addressed.</div>
+  </div>
+</body>
+</html>
