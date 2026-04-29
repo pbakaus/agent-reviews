@@ -211,6 +211,11 @@ describe("isBot", () => {
     expect(isBot("sonarqubecloud")).toBe(true);
     expect(isBot("sonarqube-cloud-us")).toBe(true);
   });
+
+  it("detects gemini-code-assist (with and without [bot] suffix)", () => {
+    expect(isBot("gemini-code-assist[bot]")).toBe(true);
+    expect(isBot("gemini-code-assist")).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -412,6 +417,34 @@ describe("isMetaComment", () => {
       )
     ).toBe(true);
   });
+
+  // Gemini Code Assist
+  it("filters Gemini Code Assist Summary of Changes comments", () => {
+    expect(
+      isMetaComment(
+        "gemini-code-assist[bot]",
+        "## Summary of Changes\n\nHello @user, I'm Gemini Code Assist! I'm currently reviewing this pull request..."
+      )
+    ).toBe(true);
+  });
+
+  it("filters Gemini Code Assist comments without [bot] suffix", () => {
+    expect(
+      isMetaComment(
+        "gemini-code-assist",
+        "## Summary of Changes\n\nThis PR refactors..."
+      )
+    ).toBe(true);
+  });
+
+  it("does not filter Gemini Code Assist inline severity-badge findings", () => {
+    expect(
+      isMetaComment(
+        "gemini-code-assist[bot]",
+        "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe `similarity_threshold` is hardcoded to `0.5` here."
+      )
+    ).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -567,6 +600,44 @@ describe("processComments", () => {
 
     const result = processComments(data);
     expect(result).toHaveLength(0);
+  });
+
+  it("filters Gemini Code Assist Summary of Changes but keeps inline findings", () => {
+    const data = {
+      reviewComments: [
+        makeReviewComment({
+          id: 10,
+          user: { login: "gemini-code-assist[bot]" },
+          body: "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe similarity_threshold is hardcoded.",
+        }),
+      ],
+      issueComments: [
+        {
+          id: 20,
+          user: { login: "gemini-code-assist[bot]" },
+          body: "## Summary of Changes\n\nHello @user, I'm Gemini Code Assist! Highlights...",
+          created_at: "2025-01-01T00:00:00Z",
+          updated_at: "2025-01-01T00:00:00Z",
+          html_url: "https://github.com/org/repo/pull/1#issuecomment-20",
+        },
+      ],
+      reviews: [
+        {
+          id: 30,
+          user: { login: "gemini-code-assist[bot]" },
+          body: "## Code Review\n\nThis PR introduces several improvements...",
+          state: "COMMENTED",
+          submitted_at: "2025-01-01T00:00:00Z",
+          html_url: "https://github.com/org/repo/pull/1#pullrequestreview-30",
+        },
+      ],
+    };
+
+    const result = processComments(data);
+    // Inline finding kept; summary issue comment + bot review body filtered.
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(10);
+    expect(result[0].isBot).toBe(true);
   });
 
   it("keeps human review bodies", () => {
