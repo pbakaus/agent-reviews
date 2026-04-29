@@ -53,6 +53,14 @@ For cloud/remote environments or HTTPS proxy setups, set `GITHUB_TOKEN` or `GH_T
 3. `.env.local` in the repo root
 4. `gh auth token` (GitHub CLI)
 
+### Custom API host
+
+Set `GITHUB_API_URL` to point agent-reviews at a GitHub Enterprise host or any API-compatible server (useful for testing, recording, or routing through a local mediator). Defaults to `https://api.github.com`.
+
+```bash
+GITHUB_API_URL=https://github.example.com/api/v3 agent-reviews
+```
+
 ## CLI Usage
 
 ```bash

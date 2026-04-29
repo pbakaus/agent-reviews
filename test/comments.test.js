@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   cleanBody,
   isBot,
@@ -654,5 +654,48 @@ describe("filterComments", () => {
   it("returns all when no filters", () => {
     const result = filterComments(comments, {});
     expect(result).toHaveLength(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GITHUB_API_URL override
+// ---------------------------------------------------------------------------
+
+describe("GITHUB_API_URL override", () => {
+  afterEach(() => {
+    delete process.env.GITHUB_API_URL;
+    vi.resetModules();
+  });
+
+  it("findPRForBranch uses GITHUB_API_URL when set", async () => {
+    process.env.GITHUB_API_URL = "https://gh.example.test/api";
+    vi.resetModules();
+    const { findPRForBranch } = await import("../lib/comments.js");
+
+    const calls = [];
+    await findPRForBranch("o", "r", "b", "tok", async (url) => {
+      calls.push(url);
+      return { ok: true, json: async () => [] };
+    });
+
+    expect(calls[0]).toBe(
+      "https://gh.example.test/api/repos/o/r/pulls?head=o:b&state=open"
+    );
+  });
+
+  it("findPRForBranch defaults to api.github.com when unset", async () => {
+    delete process.env.GITHUB_API_URL;
+    vi.resetModules();
+    const { findPRForBranch } = await import("../lib/comments.js");
+
+    const calls = [];
+    await findPRForBranch("o", "r", "b", "tok", async (url) => {
+      calls.push(url);
+      return { ok: true, json: async () => [] };
+    });
+
+    expect(calls[0]).toBe(
+      "https://api.github.com/repos/o/r/pulls?head=o:b&state=open"
+    );
   });
 });
