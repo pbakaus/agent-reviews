@@ -698,4 +698,159 @@ describe("GITHUB_API_URL override", () => {
       "https://api.github.com/repos/o/r/pulls?head=o:b&state=open"
     );
   });
+
+  it("normalizes a trailing slash on GITHUB_API_URL", async () => {
+    process.env.GITHUB_API_URL = "https://gh.example.test/api/v3/";
+    vi.resetModules();
+    const { findPRForBranch } = await import("../lib/comments.js");
+
+    const calls = [];
+    await findPRForBranch("o", "r", "b", "tok", async (url) => {
+      calls.push(url);
+      return { ok: true, json: async () => [] };
+    });
+
+    // No double slash between base and /repos.
+    expect(calls[0]).toBe(
+      "https://gh.example.test/api/v3/repos/o/r/pulls?head=o:b&state=open"
+    );
+  });
+
+  it("replyToComment honors GITHUB_API_URL", async () => {
+    process.env.GITHUB_API_URL = "https://gh.example.test/api/v3";
+    vi.resetModules();
+    const { replyToComment } = await import("../lib/comments.js");
+
+    const calls = [];
+    await replyToComment(
+      "o",
+      "r",
+      42,
+      777,
+      "fixed",
+      "tok",
+      async (url) => {
+        calls.push(url);
+        return { ok: true, json: async () => ({ id: 1 }) };
+      }
+    );
+
+    expect(calls[0]).toBe(
+      "https://gh.example.test/api/v3/repos/o/r/pulls/42/comments/777/replies"
+    );
+  });
+
+  it("resolveThread uses /graphql under api.github.com (default)", async () => {
+    delete process.env.GITHUB_API_URL;
+    vi.resetModules();
+    const { resolveThread } = await import("../lib/comments.js");
+
+    const calls = [];
+    const fakeThread = {
+      id: "PRRT_x",
+      isResolved: false,
+      comments: { nodes: [{ databaseId: 1 }] },
+    };
+    await resolveThread("o", "r", 42, 1, "tok", async (url, _opts) => {
+      calls.push(url);
+      // First call is the find-thread query, second is the resolve mutation.
+      const body =
+        calls.length === 1
+          ? {
+              data: {
+                repository: {
+                  pullRequest: {
+                    reviewThreads: {
+                      pageInfo: { hasNextPage: false, endCursor: null },
+                      nodes: [fakeThread],
+                    },
+                  },
+                },
+              },
+            }
+          : {
+              data: {
+                resolveReviewThread: {
+                  thread: { id: "PRRT_x", isResolved: true },
+                },
+              },
+            };
+      return { ok: true, json: async () => body };
+    });
+
+    expect(calls[0]).toBe("https://api.github.com/graphql");
+    expect(calls[1]).toBe("https://api.github.com/graphql");
+  });
+
+  it("resolveThread maps GHES /api/v3 to /api/graphql at the same origin", async () => {
+    process.env.GITHUB_API_URL = "https://gh.example.test/api/v3";
+    vi.resetModules();
+    const { resolveThread } = await import("../lib/comments.js");
+
+    const calls = [];
+    const fakeThread = {
+      id: "PRRT_x",
+      isResolved: false,
+      comments: { nodes: [{ databaseId: 1 }] },
+    };
+    await resolveThread("o", "r", 42, 1, "tok", async (url, _opts) => {
+      calls.push(url);
+      const body =
+        calls.length === 1
+          ? {
+              data: {
+                repository: {
+                  pullRequest: {
+                    reviewThreads: {
+                      pageInfo: { hasNextPage: false, endCursor: null },
+                      nodes: [fakeThread],
+                    },
+                  },
+                },
+              },
+            }
+          : {
+              data: {
+                resolveReviewThread: {
+                  thread: { id: "PRRT_x", isResolved: true },
+                },
+              },
+            };
+      return { ok: true, json: async () => body };
+    });
+
+    // GHES rewrites /api/v3 -> /api/graphql at the same origin.
+    expect(calls[0]).toBe("https://gh.example.test/api/graphql");
+    expect(calls[1]).toBe("https://gh.example.test/api/graphql");
+  });
+
+  it("GITHUB_GRAPHQL_URL overrides the derivation entirely", async () => {
+    process.env.GITHUB_API_URL = "https://gh.example.test/api/v3";
+    process.env.GITHUB_GRAPHQL_URL = "https://gql.example.test/custom";
+    vi.resetModules();
+    const { resolveThread } = await import("../lib/comments.js");
+
+    const calls = [];
+    await resolveThread("o", "r", 42, 1, "tok", async (url, _opts) => {
+      calls.push(url);
+      return {
+        ok: true,
+        json: async () => ({
+          data: {
+            repository: {
+              pullRequest: {
+                reviewThreads: {
+                  pageInfo: { hasNextPage: false, endCursor: null },
+                  nodes: [],
+                },
+              },
+            },
+          },
+        }),
+      };
+    });
+
+    expect(calls[0]).toBe("https://gql.example.test/custom");
+    delete process.env.GITHUB_GRAPHQL_URL;
+  });
 });
