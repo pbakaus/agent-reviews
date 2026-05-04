@@ -5,6 +5,16 @@
 		<div class="changelog-list">
 			<div class="changelog-entry">
 				<div class="changelog-version-header">
+					<span class="changelog-version">v1.0.2</span>
+					<span class="changelog-date">May 4, 2026</span>
+				</div>
+				<ul class="changelog-items">
+					<li>GitHub Enterprise Server support via <code>GITHUB_API_URL</code> env var (REST and GraphQL); optional <code>GITHUB_GRAPHQL_URL</code> for non-standard setups</li>
+					<li>Gemini Code Assist <code>## Summary of Changes</code> comment is now filtered; inline severity-badged findings are preserved</li>
+				</ul>
+			</div>
+			<div class="changelog-entry">
+				<div class="changelog-version-header">
 					<span class="changelog-version">v1.0.0</span>
 					<span class="changelog-date">March 6, 2026</span>
 				</div>

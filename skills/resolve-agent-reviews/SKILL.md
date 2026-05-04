@@ -6,7 +6,7 @@ compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
 allowed-tools: Bash(npx agent-reviews *) Bash(pnpm dlx agent-reviews *) Bash(yarn dlx agent-reviews *) Bash(bunx agent-reviews *) Bash(git config *) Bash(git add *) Bash(git commit *) Bash(git push *)
 metadata:
   author: pbakaus
-  version: "1.0.1"
+  version: "1.0.2"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 

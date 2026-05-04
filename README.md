@@ -177,6 +177,11 @@ Polls the GitHub API at a configurable interval and reports new comments as they
 
 ## Changelog
 
+### 1.0.2
+
+- GitHub Enterprise Server support via `GITHUB_API_URL` env var (also works for local API-compatible servers used in testing). REST and GraphQL endpoints both honor it, with GHES `/api/v3` automatically rewritten to `/api/graphql`. Optional `GITHUB_GRAPHQL_URL` for unusual setups.
+- Gemini Code Assist meta-comment filtering: the bot's `## Summary of Changes` issue comment is now dropped, while inline severity-badged findings are preserved.
+
 ### 1.0.0
 
 **Three skills instead of one.** The single `agent-reviews` skill has been split into three, each tailored for different workflows:
