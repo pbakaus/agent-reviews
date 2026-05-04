@@ -145,6 +145,7 @@ Bot review bodies (`REVIEW` type) are always filtered out since actionable findi
 | Sourcery | Reviewer's guide and PR summary |
 | Codacy | Analysis summary and coverage summary |
 | SonarCloud | Quality Gate pass/fail summary |
+| Gemini Code Assist | "Summary of Changes" issue comment |
 
 ### Reply status
 
