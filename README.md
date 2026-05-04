@@ -53,6 +53,20 @@ For cloud/remote environments or HTTPS proxy setups, set `GITHUB_TOKEN` or `GH_T
 3. `.env.local` in the repo root
 4. `gh auth token` (GitHub CLI)
 
+### Custom API host
+
+Set `GITHUB_API_URL` to point agent-reviews at a GitHub Enterprise host or any API-compatible server (useful for testing, recording, or routing through a local mediator). Defaults to `https://api.github.com`.
+
+```bash
+# GitHub Enterprise Server
+GITHUB_API_URL=https://github.example.com/api/v3 agent-reviews
+
+# Local API-compatible server
+GITHUB_API_URL=http://127.0.0.1:8080 agent-reviews
+```
+
+GraphQL endpoint resolution: agent-reviews uses `${GITHUB_API_URL}/graphql` by default. For GitHub Enterprise Server, where REST lives under `/api/v3` and GraphQL under `/api/graphql` on the same origin, the trailing `/api/v3` is rewritten to `/api/graphql` automatically. Set `GITHUB_GRAPHQL_URL` directly if you need full control over the GraphQL endpoint.
+
 ## CLI Usage
 
 ```bash
