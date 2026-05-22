@@ -473,6 +473,10 @@ async function main() {
 
     if (options.json) {
       console.log(JSON.stringify(result, null, 2));
+    } else if (result.skipped) {
+      console.log(
+        `${colors.yellow}⊘ Skipped reply: ${result.reason}${colors.reset}`
+      );
     } else {
       console.log(
         `${colors.green}✓ Reply posted successfully${colors.reset}`
@@ -480,7 +484,10 @@ async function main() {
       console.log(`  ${colors.dim}${result.html_url}${colors.reset}`);
     }
 
-    if (options.resolve) {
+    // Thread resolution only applies to inline review threads. If the reply
+    // itself was skipped because the target isn't a review comment, there's
+    // no thread to resolve either, so bail early.
+    if (options.resolve && !result.skipped) {
       try {
         const resolveResult = await resolveThread(
           repoInfo.owner,
