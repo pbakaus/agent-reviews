@@ -88,19 +88,21 @@ After evaluating and fixing ALL unanswered comments:
 
 ### Step 5: Reply to All Comments
 
-Now that the commit hash exists, reply to every processed comment. The `--resolve` flag marks the review thread as resolved on GitHub.
+Now that the commit hash exists, reply to every processed comment. The `--resolve` flag marks the review thread as resolved on GitHub. Use it only when closing the conversation (discussions concluded, already-addressed), not for fresh fixes that the reviewer should still verify.
 
-**For each ACTIONABLE:**
+**For each ACTIONABLE** (we fixed it; leave the thread open so the reviewer can verify):
 
-Run `npx agent-reviews --reply <comment_id> "Fixed in {hash}. {Brief description of the fix}" --resolve`
+Run `npx agent-reviews --reply <comment_id> "Fixed in {hash}. {Brief description of the fix}"`
 
-**For each DISCUSSION (after user decision):**
+**For each DISCUSSION (after user decision)** (the decision concludes the thread):
 
 Run `npx agent-reviews --reply <comment_id> "{Outcome}. {Explanation of the decision and any changes made}" --resolve`
 
-**For each ALREADY ADDRESSED:**
+**For each ALREADY ADDRESSED** (nothing more to do):
 
 Run `npx agent-reviews --reply <comment_id> "Already addressed. {Explanation of when/how this was fixed}" --resolve`
+
+**Non-threadable comments:** If a comment was posted as a PR-level issue comment (not an inline review comment on a specific line), the CLI cannot post a threaded reply and will print `⊘ Skipped reply: comment is not part of a review thread`. That's expected. Record the outcome in the summary and move on; do not retry.
 
 **DO NOT start Phase 2 until all replies are posted.**
 

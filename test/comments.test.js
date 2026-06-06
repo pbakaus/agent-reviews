@@ -895,6 +895,67 @@ describe("GITHUB_API_URL override", () => {
     expect(calls[1]).toBe("https://gh.example.test/api/graphql");
   });
 
+  it("replyToComment skips when target is not a review thread (404)", async () => {
+    delete process.env.GITHUB_API_URL;
+    vi.resetModules();
+    const { replyToComment } = await import("../lib/comments.js");
+
+    const result = await replyToComment(
+      "o",
+      "r",
+      42,
+      999,
+      "won't fix",
+      "tok",
+      async () => ({
+        ok: false,
+        status: 404,
+        text: async () => "Not Found",
+      })
+    );
+
+    expect(result.skipped).toBe(true);
+    expect(result.reason).toMatch(/not part of a review thread/);
+  });
+
+  it("replyToComment throws on non-404 errors", async () => {
+    delete process.env.GITHUB_API_URL;
+    vi.resetModules();
+    const { replyToComment } = await import("../lib/comments.js");
+
+    await expect(
+      replyToComment("o", "r", 42, 999, "msg", "tok", async () => ({
+        ok: false,
+        status: 500,
+        text: async () => "Internal Server Error",
+      }))
+    ).rejects.toThrow(/Failed to reply: 500/);
+  });
+
+  it("replyToComment returns { replied: true, ... } on success", async () => {
+    delete process.env.GITHUB_API_URL;
+    vi.resetModules();
+    const { replyToComment } = await import("../lib/comments.js");
+
+    const result = await replyToComment(
+      "o",
+      "r",
+      42,
+      777,
+      "fixed!",
+      "tok",
+      async () => ({
+        ok: true,
+        status: 201,
+        json: async () => ({ id: 123, html_url: "https://example.test/url" }),
+      })
+    );
+
+    expect(result.replied).toBe(true);
+    expect(result.id).toBe(123);
+    expect(result.html_url).toBe("https://example.test/url");
+  });
+
   it("GITHUB_GRAPHQL_URL overrides the derivation entirely", async () => {
     process.env.GITHUB_API_URL = "https://gh.example.test/api/v3";
     process.env.GITHUB_GRAPHQL_URL = "https://gql.example.test/custom";
