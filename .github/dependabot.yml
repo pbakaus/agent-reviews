@@ -32,6 +32,13 @@ updates:
       prefix: "deps"
       include: "scope"
     groups:
+      website-vite-major:
+        dependency-type: "development"
+        update-types:
+          - "major"
+        patterns:
+          - "vite"
+          - "@sveltejs/vite-plugin-svelte"
       website-dev-minor-patch:
         dependency-type: "development"
         update-types:
