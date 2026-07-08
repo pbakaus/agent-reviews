@@ -351,15 +351,6 @@
 		font-size: 0.95rem;
 	}
 
-	.pop {
-		font-family: var(--serif);
-		font-style: italic;
-		font-size: 0.78rem;
-		color: var(--accent);
-		margin-left: auto;
-		white-space: nowrap;
-	}
-
 	@media (max-width: 680px) {
 		.row {
 			grid-template-columns: 1fr;
@@ -385,6 +376,5 @@
 		}
 
 		.skill code { min-width: auto; }
-		.pop { margin-left: 0; }
 	}
 </style>
