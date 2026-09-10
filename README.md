@@ -53,6 +53,12 @@ For cloud/remote environments or HTTPS proxy setups, set `GITHUB_TOKEN` or `GH_T
 3. `.env.local` in the repo root
 4. `gh auth token` (GitHub CLI)
 
+### Fork pull requests
+
+Branch discovery keeps the head repository separate from the PR's base repository. It uses the branch push remote, `remote.pushDefault`, tracking remote, or `origin` (in that order), and looks for the current branch in configured GitHub repositories and the fork's parent/source repositories. An upstream remote is not required. A single GitHub remote with another name also works.
+
+`GH_REPO=organisation/project` restricts the target repository without changing the head owner. Use `GH_REPO=organisation/project agent-reviews --pr 123` to select a PR explicitly, including from detached HEAD. If multiple open PRs match, the CLI asks for an explicit target instead of choosing one. Discovery uses the GitHub API and works with token authentication without requiring `gh`.
+
 ### Custom API host
 
 Set `GITHUB_API_URL` to point agent-reviews at a GitHub Enterprise host or any API-compatible server (useful for testing, recording, or routing through a local mediator). Defaults to `https://api.github.com`.
@@ -95,12 +101,6 @@ agent-reviews --watch --bots-only
 # Target a specific PR (otherwise auto-detects from branch)
 agent-reviews --pr 42
 ```
-
-### Fork pull requests
-
-Branch discovery keeps the head repository separate from the PR's base repository. It uses the branch push remote, `remote.pushDefault`, tracking remote, or `origin` (in that order), and looks for the current branch in configured GitHub repositories and the fork's parent/source repositories. An upstream remote is not required. A single GitHub remote with another name also works.
-
-`GH_REPO=organisation/project` restricts the target repository without changing the head owner. Use `GH_REPO=organisation/project agent-reviews --pr 123` to select a PR explicitly, including from detached HEAD. If multiple open PRs match, the CLI asks for an explicit target instead of choosing one. Discovery uses the GitHub API and works with token authentication without requiring `gh`.
 
 ### Options
 
