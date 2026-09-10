@@ -22,6 +22,8 @@
  *   --humans-only    Only show human comments
  */
 
+const fs = require("node:fs");
+
 const {
   getProxyFetch,
   getGitHubToken,
@@ -51,14 +53,14 @@ const proxyFetch = getProxyFetch();
 // Argument parsing
 // ---------------------------------------------------------------------------
 
-function parseArgs() {
-  const args = process.argv.slice(2);
+function parseArgs(args = process.argv.slice(2)) {
   const result = {
     command: "list",
     prNumber: null,
     filter: null,
     replyTo: null,
     replyMessage: null,
+    bodyFile: null,
     json: false,
     botsOnly: false,
     humansOnly: false,
@@ -95,6 +97,15 @@ function parseArgs() {
         }
         break;
       }
+      case "--body-file":
+        if (result.bodyFile !== null) {
+          throw new Error("--body-file may only be specified once");
+        }
+        if (i + 1 >= args.length || args[i + 1].startsWith("-")) {
+          throw new Error("--body-file requires a path");
+        }
+        result.bodyFile = args[++i];
+        break;
       case "--pr":
       case "-p":
         result.prNumber = Number.parseInt(args[++i], 10);
@@ -180,7 +191,8 @@ ${colors.bright}Usage:${colors.reset}
 ${colors.bright}Options:${colors.reset}
   -u, --unresolved   Show only unresolved/pending comments
   -a, --unanswered   Show only comments without any replies
-  -r, --reply        Reply to a comment (requires ID and message)
+  -r, --reply        Reply to a comment (requires ID and message or --body-file)
+      --body-file    Read reply text from a UTF-8 file
   -d, --detail       Show full detail for a specific comment
   -p, --pr           Target specific PR number (auto-detects from branch)
   -j, --json         Output as JSON instead of formatted text
@@ -202,6 +214,7 @@ ${colors.bright}Examples:${colors.reset}
   agent-reviews -a --bots-only               # Unanswered bot comments
   agent-reviews -a --bots-only --expanded    # Full detail for unanswered bot comments
   agent-reviews --reply 12345 "Fixed!"       # Reply to comment #12345
+  agent-reviews --reply 12345 --body-file body.md  # Reply from a file
   agent-reviews --detail 12345               # Full detail for a comment
   agent-reviews --detail 12345 --json        # Detail as JSON
   agent-reviews --json | jq '.[]'            # Pipe to jq
@@ -387,6 +400,27 @@ async function watchForComments(context, options) {
 // Main
 // ---------------------------------------------------------------------------
 
+function prepareReply(options) {
+  if (options.bodyFile !== null && options.command !== "reply") {
+    throw new Error("--body-file requires --reply");
+  }
+  if (options.command !== "reply") return;
+  if (!options.replyTo) throw new Error("--reply requires a comment ID");
+  if (options.bodyFile !== null) {
+    if (options.replyMessage !== null) {
+      throw new Error("Provide either a message or --body-file, not both");
+    }
+    try {
+      options.replyMessage = fs.readFileSync(options.bodyFile, "utf8");
+    } catch (error) {
+      throw new Error(`Cannot read body file '${options.bodyFile}': ${error.message}`);
+    }
+  }
+  if (!options.replyMessage || !options.replyMessage.trim()) {
+    throw new Error('--reply requires a non-empty message or --body-file <path>');
+  }
+}
+
 async function main() {
   const options = parseArgs();
 
@@ -400,6 +434,8 @@ async function main() {
     showHelp();
     process.exit(0);
   }
+
+  prepareReply(options);
 
   // Get GitHub token
   const token = getGitHubToken();
@@ -453,14 +489,6 @@ async function main() {
 
   // Handle reply command
   if (options.command === "reply") {
-    if (!(options.replyTo && options.replyMessage)) {
-      console.error(
-        `${colors.red}Error: --reply requires comment ID and message${colors.reset}`
-      );
-      console.error('Usage: agent-reviews --reply <id> "message"');
-      process.exit(1);
-    }
-
     const result = await replyToComment(
       repoInfo.owner,
       repoInfo.repo,
@@ -584,7 +612,9 @@ async function main() {
 
 }
 
-main().catch((error) => {
+if (require.main === module) main().catch((error) => {
   console.error(`${colors.red}Error: ${error.message}${colors.reset}`);
   process.exit(1);
 });
+
+module.exports = { parseArgs, prepareReply };
