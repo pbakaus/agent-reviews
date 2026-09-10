@@ -986,3 +986,31 @@ describe("GITHUB_API_URL override", () => {
     delete process.env.GITHUB_GRAPHQL_URL;
   });
 });
+
+describe("resumed review sessions", () => {
+  it("excludes a finding after a reply is fetched while retaining a later finding", () => {
+    const comment = (id, body, user, extra = {}) => ({
+      id, body, user: { login: user },
+      created_at: `2026-09-10T12:00:0${id - 100}Z`,
+      updated_at: `2026-09-10T12:00:0${id - 100}Z`,
+      html_url: `https://github.com/owner/repo/pull/1#discussion_r${id}`,
+      ...extra,
+    });
+    const raw = {
+      reviewComments: [comment(100, "Original finding", "reviewer[bot]")],
+      issueComments: [], reviews: [],
+    };
+    const fetchUnanswered = () => filterComments(
+      processComments(JSON.parse(JSON.stringify(raw))),
+      { botsOnly: true, filter: "unanswered" }
+    );
+    expect(fetchUnanswered().map((c) => c.id)).toEqual([100]);
+    raw.reviewComments.push(comment(101, "Won't fix: intentional behavior", "maintainer", { in_reply_to_id: 100 }));
+    expect(fetchUnanswered()).toEqual([]);
+    raw.reviewComments.push(comment(102, "New finding", "reviewer[bot]"));
+    expect(fetchUnanswered().map((c) => c.id)).toEqual([102]);
+    const original = processComments(raw).find((c) => c.id === 100);
+    expect(original.hasAnyReply).toBe(true);
+    expect(original.replies[0].body).toBe("Won't fix: intentional behavior");
+  });
+});
