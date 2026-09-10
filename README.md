@@ -177,7 +177,7 @@ Each comment displays its reply status:
 
 Polls the GitHub API at a configurable interval and reports new comments as they appear. Outputs both formatted text and JSON for AI agent consumption. Exits automatically after a configurable inactivity timeout (default: 10 minutes).
 
-Reply files preserve Markdown and newlines exactly. For multiline or complex replies, write the text to a file and pass `--body-file body.md` to avoid shell quoting and command substitution. Paths are relative to the current directory. Use either a positional message or `--body-file`, not both; empty or whitespace-only replies are rejected. The flag works with `--resolve` and `--json`.
+Reply files preserve Markdown and newlines exactly. For multiline or complex replies, write the text to a file and pass `--body-file body.md` to avoid shell quoting and command substitution. Both absolute and relative paths are supported; relative paths are resolved from the current directory. Prefer uniquely named temporary files outside the repository so later commits cannot accidentally include reply text. Use either a positional message or `--body-file`, not both; empty or whitespace-only replies are rejected. The flag works with `--resolve` and `--json`.
 
 ## Changelog
 
