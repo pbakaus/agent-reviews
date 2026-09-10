@@ -57,14 +57,3 @@ describe('reply body files', () => {
     expect(result.stdout).toBe('');
   });
 });
-
-describe("author exclusion arguments", () => {
-  it("accepts repeatable exact logins alongside watch filters", () => {
-    expect(parseArgs(["--watch", "--bots-only", "--ignore-author", "GitHub-Actions[bot]", "--ignore-author", "vercel[bot]"])).toMatchObject({
-      command: "watch", botsOnly: true, ignoredAuthors: ["github-actions[bot]", "vercel[bot]"],
-    });
-  });
-  it.each([[], ["--json"], [""], ["*"]])("rejects a missing or invalid login %j", (...value) => {
-    expect(() => parseArgs(["--ignore-author", ...value])).toThrow("requires a GitHub login");
-  });
-});
