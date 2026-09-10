@@ -20,9 +20,7 @@ PR review bots (Copilot, Cursor Bugbot, CodeRabbit, etc.) leave inline comments 
 npm install -g agent-reviews
 ```
 
-#To hide workflow status comments, use `agent-reviews --ignore-author 'github-actions[bot]'`. Repeat the flag for multiple authors, including with `--watch`. Matching is case-insensitive and uses the full GitHub login, including `[bot]` when present. Excluded authors' top-level findings are hidden, but their replies remain visible as context in other authors' threads. Explicit `--detail` lookups and replies are unaffected. No authors are excluded by default.
-
-## Agent Skills
+### Agent Skills
 
 Three skills are available, each as a slash command (no npm install required):
 
@@ -117,6 +115,8 @@ agent-reviews --pr 42
 | `--watch` | `-w` | Poll for new comments |
 | `--interval <sec>` | `-i` | Poll interval in seconds (default: 30) |
 | `--timeout <sec>` | | Inactivity timeout in seconds (default: 600) |
+
+To hide workflow status comments, use `agent-reviews --ignore-author 'github-actions[bot]'`. Repeat the flag for multiple authors, including with `--watch`. Matching is case-insensitive and uses the full GitHub login, including `[bot]` when present. Excluded authors' top-level findings are hidden, but their replies remain visible as context in other authors' threads. Explicit `--detail` lookups and replies are unaffected. No authors are excluded by default.
 
 ## Agent Skills
 
