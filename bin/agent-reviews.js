@@ -125,7 +125,7 @@ function parseArgs(args = process.argv.slice(2)) {
         break;
       case "--ignore-author": {
         const author = args[i + 1];
-        if (!author || !/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\[bot\])?$/i.test(author)) {
+        if (!author || !/^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?(?:\[bot\])?$/i.test(author)) {
           throw new Error("--ignore-author requires a GitHub login (for example, github-actions[bot])");
         }
         result.ignoredAuthors.push(author.toLowerCase());

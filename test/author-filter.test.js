@@ -10,6 +10,11 @@ describe("author exclusion arguments", () => {
       command: "watch", botsOnly: true, ignoredAuthors: ["github-actions[bot]", "vercel[bot]"],
     });
   });
+  it("accepts Enterprise Managed User logins with underscores", () => {
+    expect(parseArgs(["--ignore-author", "Some_User_CORP"]).ignoredAuthors).toEqual(["some_user_corp"]);
+    const comments = [{ id: 1, user: "Some_User_CORP" }, { id: 2, user: "another_user" }];
+    expect(filterComments(comments, { ignoredAuthors: ["some_user_corp"] }).map((c) => c.id)).toEqual([2]);
+  });
   it.each([[], ["--json"], [""], ["*"]])("rejects a missing or invalid login %j", (...value) => {
     expect(() => parseArgs(["--ignore-author", ...value])).toThrow("requires a GitHub login");
   });
