@@ -23,16 +23,15 @@
  */
 
 const fs = require("node:fs");
+const { getBranchContext, discoverPullRequest } = require("../lib/pr-discovery");
 
 const {
   getProxyFetch,
   getGitHubToken,
   getRepoInfo,
-  getCurrentBranch,
 } = require("../lib/github");
 
 const {
-  findPRForBranch,
   fetchPRComments,
   processComments,
   filterComments,
@@ -476,8 +475,8 @@ async function main() {
   }
 
   // Get repo info
-  const repoInfo = getRepoInfo();
-  if (!repoInfo) {
+  let repoInfo = options.prNumber || process.env.GH_REPO ? getRepoInfo() : null;
+  if (!repoInfo && options.prNumber) {
     console.error(
       `${colors.red}Error: Could not determine repository from git remote${colors.reset}`
     );
@@ -489,27 +488,18 @@ async function main() {
   let prUrl = null;
 
   if (!prNumber) {
-    const branch = getCurrentBranch();
-    if (!branch) {
-      console.error(
-        `${colors.red}Error: Could not determine current branch${colors.reset}`
-      );
-      process.exit(1);
-    }
-
-    const pr = await findPRForBranch(
-      repoInfo.owner,
-      repoInfo.repo,
-      branch,
+    const context = getBranchContext();
+    const match = await discoverPullRequest(
+      context,
+      process.env.GH_REPO ? repoInfo : null,
       token,
       proxyFetch
     );
-    if (!pr) {
-      console.error(
-        `${colors.red}Error: No open PR found for branch '${branch}'${colors.reset}`
-      );
-      process.exit(1);
+    if (!match) {
+      throw new Error(`No open PR found for branch '${context.headBranch}'`);
     }
+    const { pr } = match;
+    repoInfo = match.repoInfo;
 
     prNumber = pr.number;
     prUrl = pr.html_url;

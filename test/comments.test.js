@@ -746,11 +746,11 @@ describe("GITHUB_API_URL override", () => {
     const calls = [];
     await findPRForBranch("o", "r", "b", "tok", async (url) => {
       calls.push(url);
-      return { ok: true, json: async () => [] };
+      return { ok: true, headers: { get: () => null }, json: async () => [] };
     });
 
     expect(calls[0]).toBe(
-      "https://gh.example.test/api/repos/o/r/pulls?head=o:b&state=open"
+      "https://gh.example.test/api/repos/o/r/pulls?head=o%3Ab&state=open&per_page=100"
     );
   });
 
@@ -762,11 +762,11 @@ describe("GITHUB_API_URL override", () => {
     const calls = [];
     await findPRForBranch("o", "r", "b", "tok", async (url) => {
       calls.push(url);
-      return { ok: true, json: async () => [] };
+      return { ok: true, headers: { get: () => null }, json: async () => [] };
     });
 
     expect(calls[0]).toBe(
-      "https://api.github.com/repos/o/r/pulls?head=o:b&state=open"
+      "https://api.github.com/repos/o/r/pulls?head=o%3Ab&state=open&per_page=100"
     );
   });
 
@@ -778,12 +778,12 @@ describe("GITHUB_API_URL override", () => {
     const calls = [];
     await findPRForBranch("o", "r", "b", "tok", async (url) => {
       calls.push(url);
-      return { ok: true, json: async () => [] };
+      return { ok: true, headers: { get: () => null }, json: async () => [] };
     });
 
     // No double slash between base and /repos.
     expect(calls[0]).toBe(
-      "https://gh.example.test/api/v3/repos/o/r/pulls?head=o:b&state=open"
+      "https://gh.example.test/api/v3/repos/o/r/pulls?head=o%3Ab&state=open&per_page=100"
     );
   });
 
