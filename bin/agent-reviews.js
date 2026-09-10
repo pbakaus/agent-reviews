@@ -208,6 +208,7 @@ ${colors.bright}Options:${colors.reset}
   -j, --json         Output as JSON instead of formatted text
   -b, --bots-only    Only show comments from bots
   -H, --humans-only  Only show comments from humans
+      --ignore-author <login>  Exclude an author from listing/watching (repeatable)
   -e, --expanded     Show full detail (body, diff hunk, replies) for each comment
       --resolve      Resolve the review thread after replying (use with --reply)
   -h, --help         Show this help
