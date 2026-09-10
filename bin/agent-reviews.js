@@ -74,8 +74,46 @@ function parseArgs(args = process.argv.slice(2)) {
     watchTimeout: 600,
   };
 
+  const positionals = [];
+  const supplied = new Set();
+  let explicitCommand = null;
+  let endOfOptions = false;
+
+  function setCommand(command) {
+    if (explicitCommand !== null) {
+      throw new Error("Use only one of --reply, --detail, or --watch");
+    }
+    explicitCommand = command;
+    result.command = command;
+  }
+
+  function positiveInteger(value, flag) {
+    if (!/^[0-9]+$/.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) <= 0) {
+      throw new Error(`${flag} requires a positive integer`);
+    }
+    return Number(value);
+  }
+
   for (let i = 0; i < args.length; i++) {
-    switch (args[i]) {
+    const arg = args[i];
+    if (arg === "--" && !endOfOptions) {
+      endOfOptions = true;
+      continue;
+    }
+    if (endOfOptions || !arg.startsWith("-")) {
+      if (result.command !== "reply") throw new Error(`Unexpected argument '${arg}' before --reply`);
+      positionals.push(arg);
+      continue;
+    }
+    function valueFor(key, label) {
+      if (supplied.has(key)) throw new Error(`${key} may only be specified once`);
+      supplied.add(key);
+      if (i + 1 >= args.length || args[i + 1].startsWith("-")) {
+        throw new Error(`${key} requires ${label}`);
+      }
+      return args[++i];
+    }
+    switch (arg) {
       case "--unresolved":
       case "-u":
         result.filter = "unresolved";
@@ -85,30 +123,15 @@ function parseArgs(args = process.argv.slice(2)) {
         result.filter = "unanswered";
         break;
       case "--reply":
-      case "-r": {
-        result.command = "reply";
-        // Consume the next non-flag arg as the comment ID
-        if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
-          result.replyTo = args[++i];
-        }
-        // Consume the next non-flag arg as the message
-        if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
-          result.replyMessage = args[++i];
-        }
+      case "-r":
+        setCommand("reply");
         break;
-      }
       case "--body-file":
-        if (result.bodyFile !== null) {
-          throw new Error("--body-file may only be specified once");
-        }
-        if (i + 1 >= args.length || args[i + 1].startsWith("-")) {
-          throw new Error("--body-file requires a path");
-        }
-        result.bodyFile = args[++i];
+        result.bodyFile = valueFor("--body-file", "a path");
         break;
       case "--pr":
       case "-p":
-        result.prNumber = Number.parseInt(args[++i], 10);
+        result.prNumber = positiveInteger(valueFor("--pr", "a PR number"), "--pr");
         break;
       case "--json":
       case "-j":
@@ -124,21 +147,22 @@ function parseArgs(args = process.argv.slice(2)) {
         break;
       case "--detail":
       case "-d":
-        result.command = "detail";
-        result.detail = args[++i];
+        setCommand("detail");
+        result.detail = valueFor("--detail", "a comment ID");
+        positiveInteger(result.detail, "--detail");
         break;
       case "--watch":
       case "-w":
+        setCommand("watch");
         result.watch = true;
-        result.command = "watch";
         break;
       case "--interval":
       case "-i":
-        result.watchInterval = Number.parseInt(args[++i], 10);
+        result.watchInterval = positiveInteger(valueFor("--interval", "seconds"), "--interval");
         break;
       case "--exit-after":
       case "--timeout":
-        result.watchTimeout = Number.parseInt(args[++i], 10);
+        result.watchTimeout = positiveInteger(valueFor("--timeout", "seconds"), "--timeout");
         break;
       case "--expanded":
       case "-e":
@@ -156,17 +180,20 @@ function parseArgs(args = process.argv.slice(2)) {
         result.version = true;
         break;
       default:
-        // Collect positional args for commands that need them
-        if (result.command === "reply" && !args[i].startsWith("-")) {
-          if (!result.replyTo) {
-            result.replyTo = args[i];
-          } else if (!result.replyMessage) {
-            result.replyMessage = args[i];
-          }
-        }
-        break;
+        throw new Error(`Unknown option '${arg}'. Use --help for usage; use -- before a message starting with '-'.`);
     }
   }
+
+  if (result.command === "reply") {
+    if (positionals.length > 2) throw new Error("Unexpected argument: --reply accepts only a comment ID and one message");
+    result.replyTo = positionals[0] ?? null;
+    result.replyMessage = positionals[1] ?? null;
+    if (result.replyTo !== null) positiveInteger(result.replyTo, "--reply comment ID");
+  } else if (positionals.length) {
+    throw new Error(`Unexpected argument '${positionals[0]}'`);
+  }
+  if (result.resolve && result.command !== "reply") throw new Error("--resolve requires --reply");
+  if (result.botsOnly && result.humansOnly) throw new Error("Use either --bots-only or --humans-only, not both");
 
   return result;
 }
@@ -193,6 +220,7 @@ ${colors.bright}Options:${colors.reset}
   -a, --unanswered   Show only comments without any replies
   -r, --reply        Reply to a comment (requires ID and message or --body-file)
       --body-file    Read reply text from a UTF-8 file
+      --             End options (for messages starting with a dash)
   -d, --detail       Show full detail for a specific comment
   -p, --pr           Target specific PR number (auto-detects from branch)
   -j, --json         Output as JSON instead of formatted text

@@ -96,6 +96,8 @@ agent-reviews --watch --bots-only
 agent-reviews --pr 42
 ```
 
+Unknown options, unexpected arguments, and invalid numeric values fail before authentication or network requests. To pass an inline reply starting with a dash, put options first and use `agent-reviews --reply 12345 -- "- Fixed the issue"`. Everything after `--` is literal text.
+
 ### Options
 
 | Flag | Short | Description |
