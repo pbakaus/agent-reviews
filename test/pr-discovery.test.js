@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
-const { getBranchContext, parseRemote, discoverPullRequest } = require("../lib/pr-discovery");
+const { getBranchContext, getDefaultRepository, parseRemote, discoverPullRequest } = require("../lib/pr-discovery");
 const { findPRForBranch } = require("../lib/comments");
 const fork = { owner: "contributor", repo: "project" };
 const upstream = { owner: "organisation", repo: "project" };
@@ -69,6 +69,20 @@ describe("branch repository detection", () => {
     expect(() => getBranchContext(gitFixture({}, {
       one: "https://github.com/a/b", two: "https://github.com/c/d",
     }))).toThrow("Cannot determine");
+  });
+});
+
+describe("explicit PR repository selection", () => {
+  it("works without branch information and with a uniquely named remote", () => {
+    const read = gitFixture({}, { upstream: "https://github.com/organisation/project" });
+    expect(getDefaultRepository((args) => {
+      if (args[0] === "symbolic-ref") throw new Error("Must not inspect branch");
+      return read(args);
+    })).toEqual(upstream);
+  });
+  it("prefers origin and rejects ambiguous non-origin repositories", () => {
+    expect(getDefaultRepository(gitFixture({}, { origin: "https://github.com/contributor/project", upstream: "https://github.com/organisation/project" }))).toEqual(fork);
+    expect(() => getDefaultRepository(gitFixture({}, { one: "https://github.com/contributor/project", two: "https://github.com/organisation/project" }))).toThrow("Multiple GitHub repositories");
   });
 });
 

@@ -447,7 +447,7 @@ async function main() {
   }
 
   // Get repo info
-  let repoInfo = getRepoInfo();
+  let repoInfo = options.prNumber || process.env.GH_REPO ? getRepoInfo() : null;
   if (!repoInfo && options.prNumber) {
     console.error(
       `${colors.red}Error: Could not determine repository from git remote${colors.reset}`
