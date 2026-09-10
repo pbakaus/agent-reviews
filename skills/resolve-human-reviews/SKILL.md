@@ -88,6 +88,8 @@ After evaluating and fixing ALL unanswered comments:
 
 ### Step 5: Reply to All Comments
 
+Before posting, fetch `npx agent-reviews --detail <comment_id>` and inspect the latest replies. If the same outcome is already recorded, do not post it again. On a resumed session, use the fresh unanswered list instead of replaying a prior session's work queue. Revisit a decision only when new discussion or a user request calls for it.
+
 For multiline or complex replies, write the exact reply text to a uniquely named UTF-8 file in a temporary directory outside the repository and use `npx agent-reviews --reply <comment_id> --body-file <path_to_reply_file>` (adding `--resolve` only where appropriate below). The CLI accepts absolute and relative paths; prefer an absolute path for the outside-repository temporary file. Use the file path directly, without shell command substitution. Do not also pass a positional message. Remove the temporary file after the reply succeeds; keep reply files outside the repository even if posting fails so later `git add -A` commands cannot commit them.
 
 Now that the commit hash exists, reply to every processed comment. The `--resolve` flag marks the review thread as resolved on GitHub. Use it only when closing the conversation (discussions concluded, already-addressed), not for fresh fixes that the reviewer should still verify.
@@ -120,7 +122,9 @@ Repeat the following until the watcher exits with no new comments:
 
 **6a.** Launch the watcher in the background:
 
-Run `npx agent-reviews --watch --humans-only` as a background task.
+Run `npx agent-reviews --watch --humans-only --unanswered` as a background task.
+
+The watcher's `EXISTING COMMENTS` section is baseline context, not a new work queue. Do not process or reply to those comments again. Process only the IDs explicitly reported as new when the watcher exits with `EXITING WITH NEW COMMENTS`.
 
 **6b.** Wait for the background command to complete (default 10 minutes; override with `--timeout`).
 

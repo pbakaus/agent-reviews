@@ -986,3 +986,24 @@ describe("GITHUB_API_URL override", () => {
     delete process.env.GITHUB_GRAPHQL_URL;
   });
 });
+
+describe("resumed review sessions", () => {
+  it("excludes an existing won't-fix reply on every fresh fetch without hiding new findings", () => {
+    const raw = {
+      reviewComments: [
+        { id: 100, body: "Original finding", user: { login: "reviewer[bot]" } },
+        { id: 101, body: "Won't fix: intentional behavior", user: { login: "maintainer" }, in_reply_to_id: 100 },
+        { id: 102, body: "New finding", user: { login: "reviewer[bot]" } },
+      ],
+      issueComments: [], reviews: [],
+    };
+    for (let session = 0; session < 2; session++) {
+      const fetched = processComments(JSON.parse(JSON.stringify(raw)));
+      const unanswered = filterComments(fetched, { botsOnly: true, filter: "unanswered" });
+      expect(unanswered.map((comment) => comment.id)).toEqual([102]);
+      const original = fetched.find((comment) => comment.id === 100);
+      expect(original.hasAnyReply).toBe(true);
+      expect(original.replies[0].body).toBe("Won't fix: intentional behavior");
+    }
+  });
+});
