@@ -113,7 +113,7 @@ After evaluating and fixing ALL unanswered comments:
 
 ### Step 5: Reply to All Comments
 
-Before posting, fetch `npx agent-reviews --detail <comment_id>` and inspect the latest replies. If the same outcome is already recorded, do not post it again. On a resumed session, use the fresh unanswered list instead of replaying a prior session's work queue. Revisit a decision only when new discussion or a user request calls for it.
+Before posting to an inline review comment, fetch `npx agent-reviews --detail <comment_id>` and inspect the latest replies. PR-level issue comments and review summaries have no threaded reply list; an empty list for these types is not evidence that no outcome was recorded. The CLI skips replies to those types. Record that skip and do not create a replacement top-level comment or use another tool to bypass it. If the same outcome is already recorded, do not post it again. On a resumed session, use the fresh unanswered list instead of replaying a prior session's work queue. Revisit a decision only when new discussion or a user request calls for it.
 
 For multiline or complex replies, write the exact reply text to a uniquely named UTF-8 file in a temporary directory outside the repository and use `npx agent-reviews --reply <comment_id> --body-file <path_to_reply_file>` (adding `--resolve` only where appropriate below). The CLI accepts absolute and relative paths; prefer an absolute path for the outside-repository temporary file. Use the file path directly, without shell command substitution. Do not also pass a positional message. Remove the temporary file after the reply succeeds; keep reply files outside the repository even if posting fails so later `git add -A` commands cannot commit them.
 
@@ -157,7 +157,7 @@ Repeat the following until the watcher exits with no new comments:
 
 Run `npx agent-reviews --watch --unanswered` as a background task.
 
-The watcher's `EXISTING COMMENTS` section is baseline context, not a new work queue. Do not process or reply to those comments again. Process only the IDs explicitly reported as new when the watcher exits with `EXITING WITH NEW COMMENTS`.
+At startup, reconcile `EXISTING COMMENTS` against IDs already handled in this run and the latest replies from `--detail`; do not replay an already recorded outcome. The baseline can include genuinely unhandled findings submitted between Phase 1 and watcher startup. If it does, stop the watcher, process those findings through Steps 3-5, and restart it. Track non-threadable comments already skipped in this run so they do not cause a restart loop. Once the baseline is reconciled, process the IDs reported as new when the watcher exits with `EXITING WITH NEW COMMENTS`.
 
 **6b.** Wait for the background command to complete (default 10 minutes; override with `--timeout`).
 

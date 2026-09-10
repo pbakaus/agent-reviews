@@ -988,22 +988,29 @@ describe("GITHUB_API_URL override", () => {
 });
 
 describe("resumed review sessions", () => {
-  it("excludes an existing won't-fix reply on every fresh fetch without hiding new findings", () => {
+  it("excludes a finding after a reply is fetched while retaining a later finding", () => {
+    const comment = (id, body, user, extra = {}) => ({
+      id, body, user: { login: user },
+      created_at: `2026-09-10T12:00:0${id - 100}Z`,
+      updated_at: `2026-09-10T12:00:0${id - 100}Z`,
+      html_url: `https://github.com/owner/repo/pull/1#discussion_r${id}`,
+      ...extra,
+    });
     const raw = {
-      reviewComments: [
-        { id: 100, body: "Original finding", user: { login: "reviewer[bot]" } },
-        { id: 101, body: "Won't fix: intentional behavior", user: { login: "maintainer" }, in_reply_to_id: 100 },
-        { id: 102, body: "New finding", user: { login: "reviewer[bot]" } },
-      ],
+      reviewComments: [comment(100, "Original finding", "reviewer[bot]")],
       issueComments: [], reviews: [],
     };
-    for (let session = 0; session < 2; session++) {
-      const fetched = processComments(JSON.parse(JSON.stringify(raw)));
-      const unanswered = filterComments(fetched, { botsOnly: true, filter: "unanswered" });
-      expect(unanswered.map((comment) => comment.id)).toEqual([102]);
-      const original = fetched.find((comment) => comment.id === 100);
-      expect(original.hasAnyReply).toBe(true);
-      expect(original.replies[0].body).toBe("Won't fix: intentional behavior");
-    }
+    const fetchUnanswered = () => filterComments(
+      processComments(JSON.parse(JSON.stringify(raw))),
+      { botsOnly: true, filter: "unanswered" }
+    );
+    expect(fetchUnanswered().map((c) => c.id)).toEqual([100]);
+    raw.reviewComments.push(comment(101, "Won't fix: intentional behavior", "maintainer", { in_reply_to_id: 100 }));
+    expect(fetchUnanswered()).toEqual([]);
+    raw.reviewComments.push(comment(102, "New finding", "reviewer[bot]"));
+    expect(fetchUnanswered().map((c) => c.id)).toEqual([102]);
+    const original = processComments(raw).find((c) => c.id === 100);
+    expect(original.hasAnyReply).toBe(true);
+    expect(original.replies[0].body).toBe("Won't fix: intentional behavior");
   });
 });
