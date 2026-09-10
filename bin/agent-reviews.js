@@ -64,6 +64,7 @@ function parseArgs(args = process.argv.slice(2)) {
     json: false,
     botsOnly: false,
     humansOnly: false,
+    ignoredAuthors: [],
     detail: null,
     help: false,
     version: false,
@@ -122,6 +123,15 @@ function parseArgs(args = process.argv.slice(2)) {
       case "-H":
         result.humansOnly = true;
         break;
+      case "--ignore-author": {
+        const author = args[i + 1];
+        if (!author || !/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\[bot\])?$/i.test(author)) {
+          throw new Error("--ignore-author requires a GitHub login (for example, github-actions[bot])");
+        }
+        result.ignoredAuthors.push(author.toLowerCase());
+        i++;
+        break;
+      }
       case "--detail":
       case "-d":
         result.command = "detail";
