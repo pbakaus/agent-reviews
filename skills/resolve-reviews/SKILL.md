@@ -113,6 +113,8 @@ After evaluating and fixing ALL unanswered comments:
 
 ### Step 5: Reply to All Comments
 
+For multiline or complex replies, write the exact reply text to a UTF-8 file and use `npx agent-reviews --reply <comment_id> --body-file body.md` (adding `--resolve` only where appropriate below). Use the file path directly, without shell command substitution. Do not also pass a positional message.
+
 Now that the commit hash exists, reply to every processed comment. The `--resolve` flag marks the review thread as resolved on GitHub. Use it only when closing the conversation (false positives, discussions concluded, already-addressed, user-skipped), not for fresh fixes that reviewers should still verify.
 
 **For each TRUE POSITIVE / ACTIONABLE** (we fixed it; leave the thread open so reviewers can verify):
