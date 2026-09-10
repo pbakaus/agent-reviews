@@ -192,6 +192,17 @@ Reply files preserve Markdown and newlines exactly. For multiline or complex rep
 
 ## Changelog
 
+### 1.1.0 (September 10, 2026)
+
+- Read exact UTF-8 reply text with `--body-file`, without shell command substitution.
+- Reject unknown flags and invalid arguments before posting; use `--` for replies beginning with a dash.
+- Discover fork PRs across upstream repositories, separate push URLs, and GitHub Enterprise hosts.
+- Exclude selected authors from listing and watching with repeatable `--ignore-author`.
+- Reduce duplicate replies with fresh reply checks and watcher-startup reconciliation in all three skills.
+- Update development dependencies to Vitest 5 and refresh website dependencies and audit fixes.
+
+Development tests now require Node.js 22.12+, 24, or 26+ as supported by Vitest 5. CLI runtime support remains Node.js 18+.
+
 ### 1.0.2
 
 - GitHub Enterprise Server support via `GITHUB_API_URL` env var (also works for local API-compatible servers used in testing). REST and GraphQL endpoints both honor it, with GHES `/api/v3` automatically rewritten to `/api/graphql`. Optional `GITHUB_GRAPHQL_URL` for unusual setups.
