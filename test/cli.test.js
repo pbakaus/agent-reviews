@@ -57,3 +57,43 @@ describe('reply body files', () => {
     expect(result.stdout).toBe('');
   });
 });
+
+describe("strict argument parsing", () => {
+  it.each([
+    ["--reply", "123", "--typo", "reply.md"],
+    ["--reply", "123", "Fixed", "--resolv"],
+    ["--rply", "123", "Fixed"],
+    ["--reply", "123", "Fixed", "extra"],
+    ["unexpected"], ["--pr"], ["--pr", "--json"],
+    ["--pr", "12oops"], ["--pr", "0"], ["--detail", "NaN"],
+    ["--interval", "0"], ["--timeout", "1.5"],
+    ["--reply", "bad-id", "Fixed"],
+    ["--reply", "123", "Fixed", "--watch"],
+    ["--resolve"], ["--bots-only", "--humans-only"],
+    ["--pr", "1", "-p", "2"],
+    ["--reply", "123", "", "--body-file", "body.md"],
+  ])("fails before authentication and never prints a result: %j", (...args) => {
+    const result = spawnSync(process.execPath, ["bin/agent-reviews.js", ...args], {
+      encoding: "utf8", env: { ...process.env, GITHUB_TOKEN: "", GH_TOKEN: "", PATH: "" },
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("Error:");
+    expect(result.stderr).not.toContain("GitHub token");
+    expect(result.stdout).toBe("");
+  });
+
+  it("preserves literal Markdown and option-like messages after --", () => {
+    for (const body of ["- Fixed the issue\n- Added a test", "--resolve", "--"]) {
+      const options = parseArgs(["--reply", "123", "--resolve", "--", body]);
+      prepareReply(options);
+      expect(options.replyMessage).toBe(body);
+      expect(options.resolve).toBe(true);
+    }
+  });
+
+  it("supports options between reply arguments", () => {
+    const options = parseArgs(["--reply", "123", "--json", "Fixed", "--pr", "42"]);
+    prepareReply(options);
+    expect(options).toMatchObject({ replyTo: "123", replyMessage: "Fixed", prNumber: 42, json: true });
+  });
+});
