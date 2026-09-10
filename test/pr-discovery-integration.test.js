@@ -8,7 +8,7 @@ import { resolve, join } from "node:path";
 const cli = resolve("bin/agent-reviews.js");
 
 describe("fork CLI integration", () => {
-  it.each(["list", "reply", "explicit"])("routes %s to the upstream repository", async (mode) => {
+  it.each(["list", "reply", "explicit", "push-url"])("routes %s to the upstream repository", async (mode) => {
     const directory = mkdtempSync(join(tmpdir(), "agent-reviews-fork-"));
     const requests = [];
     const server = createServer(async (req, res) => {
@@ -37,6 +37,10 @@ describe("fork CLI integration", () => {
     try {
       execFileSync("git", ["init", "--initial-branch=feature", directory], { stdio: "ignore" });
       execFileSync("git", ["-C", directory, "remote", "add", "origin", "https://127.0.0.1/contributor/project.git"]);
+      if (mode === "push-url") {
+        execFileSync("git", ["-C", directory, "remote", "set-url", "origin", "https://127.0.0.1/organisation/project.git"]);
+        execFileSync("git", ["-C", directory, "remote", "set-url", "--push", "origin", "https://127.0.0.1/contributor/project.git"]);
+      }
       await new Promise((done, reject) => {
         server.once("error", reject);
         server.listen(0, "127.0.0.1", done);

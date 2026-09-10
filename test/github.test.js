@@ -181,11 +181,9 @@ describe("getRepoInfo", () => {
     expect(info).toEqual({ owner: "myorg", repo: "myrepo" });
   });
 
-  it("ignores invalid GH_REPO format", () => {
-    process.env.GH_REPO = "not-a-valid-format";
-    // Should fall through to git remote detection (which works in this repo)
-    const info = getRepoInfo();
-    expect(info).not.toEqual({ owner: "not-a-valid-format", repo: undefined });
+  it.each(["not-a-valid-format", "owner/repo/extra", "owner/repo?x=y", "owner name/repo"])("rejects invalid GH_REPO %s", (value) => {
+    process.env.GH_REPO = value;
+    expect(() => getRepoInfo()).toThrow("Invalid GH_REPO");
   });
 
   it("falls back to git remote when GH_REPO is not set", () => {

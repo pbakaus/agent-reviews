@@ -11,11 +11,11 @@ const response = (body, status = 200, link = null) => ({
   ok: status === 200, status, headers: { get: () => link }, json: async () => body,
 });
 
-function gitFixture(config = {}, remoteUrls = { origin: "git@github.com:contributor/project.git" }) {
+function gitFixture(config = {}, remoteUrls = { origin: "git@github.com:contributor/project.git" }, pushUrls = {}) {
   return (args) => {
     if (args[0] === "symbolic-ref") return "feature";
     if (args.join(" ") === "remote") return Object.keys(remoteUrls).join("\n");
-    if (args[0] === "remote") return remoteUrls[args[2]] || "";
+    if (args[0] === "remote") return (args.includes("--push") ? pushUrls[args.at(-1)] ?? remoteUrls[args.at(-1)] : remoteUrls[args[2]]) || "";
     return config[args[2]] || "";
   };
 }
@@ -31,6 +31,18 @@ describe("branch repository detection", () => {
   it("does not query repositories from unrelated hosts on the configured API", () => {
     expect(parseRemote("https://gitlab.com/contributor/project", "https://api.github.com")).toBeNull();
     expect(parseRemote("git@github.com:contributor/project.git", "https://github.example.com/api/v3")).toBeNull();
+  });
+  it("maps Enterprise Cloud API hosts to their git host", () => {
+    expect(parseRemote("git@octocorp.ghe.com:contributor/project.git", "https://api.octocorp.ghe.com")).toEqual(fork);
+    expect(parseRemote("https://octocorp.ghe.com/contributor/project", "https://api.octocorp.ghe.com")).toEqual(fork);
+  });
+  it("uses the push URL for head identity and retains the fetch URL as a base candidate", () => {
+    const c = getBranchContext(gitFixture({}, { origin: "https://github.com/organisation/project" }, { origin: "https://github.com/contributor/project" }));
+    expect(c.headRepo).toEqual(fork);
+    expect(c.repositories).toEqual([upstream]);
+  });
+  it("rejects multiple push destinations instead of selecting a head arbitrarily", () => {
+    expect(() => getBranchContext(gitFixture({}, { origin: "https://github.com/organisation/project" }, { origin: "https://github.com/contributor/project\nhttps://github.com/another/project" }))).toThrow("unique GitHub push repository");
   });
   it("uses origin when a branch has no tracking configuration", () => {
     expect(getBranchContext(gitFixture()).headRepo).toEqual(fork);
@@ -86,6 +98,9 @@ describe("fork-aware lookup", () => {
     expect(result.repoInfo).toEqual(upstream);
     expect(calls).toHaveLength(1);
     expect(calls[0]).toContain("/organisation/project/pulls?head=contributor%3Afeature");
+  });
+  it("requires explicit selection when a matching PR lacks head identity", async () => {
+    await expect(discoverPullRequest(context, upstream, "token", async () => response([{ ...pr, head: { ref: "feature", repo: null } }]))).rejects.toThrow("deleted or inaccessible");
   });
   it("filters matching branch names from the wrong head repository", async () => {
     const result = await discoverPullRequest(context, upstream, "token", async () => response([
