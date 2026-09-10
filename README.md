@@ -118,10 +118,13 @@ Unknown options, unexpected arguments, and invalid numeric values fail before au
 | `--json` | `-j` | JSON output |
 | `--bots-only` | `-b` | Only bot comments |
 | `--humans-only` | `-H` | Only human comments |
+| `--ignore-author <login>` | | Exclude an author from listing and watching; repeat for multiple authors |
 | `--expanded` | `-e` | Show full detail for each listed comment |
 | `--watch` | `-w` | Poll for new comments |
 | `--interval <sec>` | `-i` | Poll interval in seconds (default: 30) |
 | `--timeout <sec>` | | Inactivity timeout in seconds (default: 600) |
+
+To hide workflow status comments, use `agent-reviews --ignore-author 'github-actions[bot]'`. Repeat the flag for multiple authors, including with `--watch`. Matching is case-insensitive and uses the full GitHub login, including `[bot]` when present. Excluded authors' top-level findings are hidden, but their replies remain visible as context in other authors' threads. Explicit `--detail` lookups and replies are unaffected. No authors are excluded by default.
 
 ## Agent Skills
 
