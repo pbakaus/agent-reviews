@@ -101,6 +101,7 @@ function parseArgs(args = process.argv.slice(2)) {
       continue;
     }
     if (endOfOptions || !arg.startsWith("-")) {
+      if (result.command !== "reply") throw new Error(`Unexpected argument '${arg}' before --reply`);
       positionals.push(arg);
       continue;
     }

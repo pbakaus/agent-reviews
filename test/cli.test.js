@@ -64,6 +64,7 @@ describe("strict argument parsing", () => {
     ["--reply", "123", "Fixed", "--resolv"],
     ["--rply", "123", "Fixed"],
     ["--reply", "123", "Fixed", "extra"],
+    ["456", "--reply", "Fixed"],
     ["unexpected"], ["--pr"], ["--pr", "--json"],
     ["--pr", "12oops"], ["--pr", "0"], ["--detail", "NaN"],
     ["--interval", "0"], ["--timeout", "1.5"],
