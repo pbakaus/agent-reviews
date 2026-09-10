@@ -5,6 +5,20 @@
 		<div class="changelog-list">
 			<div class="changelog-entry">
 				<div class="changelog-version-header">
+					<span class="changelog-version">v1.1.0</span>
+					<span class="changelog-date">September 10, 2026</span>
+				</div>
+				<ul class="changelog-items">
+					<li>Read exact UTF-8 reply text with <code>--body-file</code>, without shell command substitution.</li>
+					<li>Reject unknown flags and invalid arguments before posting; use <code>--</code> for replies beginning with a dash.</li>
+					<li>Discover fork PRs across upstream repositories, separate push URLs, and GitHub Enterprise hosts.</li>
+					<li>Exclude selected authors from listing and watching with repeatable <code>--ignore-author</code>.</li>
+					<li>Reduce duplicate replies with fresh reply checks and watcher-startup reconciliation in all three skills.</li>
+					<li>Update development dependencies to Vitest 5 and refresh website dependencies and audit fixes.</li>
+				</ul>
+			</div>
+			<div class="changelog-entry">
+				<div class="changelog-version-header">
 					<span class="changelog-version">v1.0.2</span>
 					<span class="changelog-date">May 4, 2026</span>
 				</div>
