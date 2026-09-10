@@ -28,6 +28,10 @@ describe("branch repository detection", () => {
   it.each(["git@github.example.com:contributor/project.git", "https://github.example.com/contributor/project.git", "ssh://git@github.example.com:2222/contributor/project.git"])("supports configured enterprise host %s", (url) => {
     expect(parseRemote(url, "https://github.example.com/api/v3")).toEqual(fork);
   });
+  it.each(["http://127.0.0.1:8080", "http://localhost:8080", "http://[::1]:8080"])("supports GitHub remotes with local API endpoints: %s", (apiUrl) => {
+    expect(parseRemote("git@github.com:contributor/project.git", apiUrl)).toEqual(fork);
+    expect(parseRemote("https://github.example.com/contributor/project", apiUrl)).toBeNull();
+  });
   it("does not query repositories from unrelated hosts on the configured API", () => {
     expect(parseRemote("https://gitlab.com/contributor/project", "https://api.github.com")).toBeNull();
     expect(parseRemote("git@github.com:contributor/project.git", "https://github.example.com/api/v3")).toBeNull();

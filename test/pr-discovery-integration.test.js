@@ -36,7 +36,7 @@ describe("fork CLI integration", () => {
     });
     try {
       execFileSync("git", ["init", "--initial-branch=feature", directory], { stdio: "ignore" });
-      execFileSync("git", ["-C", directory, "remote", "add", "origin", "https://127.0.0.1/contributor/project.git"]);
+      execFileSync("git", ["-C", directory, "remote", "add", "origin", "https://github.com/contributor/project.git"]);
       if (mode === "explicit-remote" || mode === "explicit-non-origin") {
         execFileSync("git", ["-C", directory, "remote", "set-url", "origin", "https://127.0.0.1/organisation/project.git"]);
         if (mode === "explicit-non-origin") execFileSync("git", ["-C", directory, "remote", "rename", "origin", "upstream"]);
