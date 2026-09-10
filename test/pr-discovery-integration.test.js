@@ -36,7 +36,7 @@ describe("fork CLI integration", () => {
     });
     try {
       execFileSync("git", ["init", "--initial-branch=feature", directory], { stdio: "ignore" });
-      execFileSync("git", ["-C", directory, "remote", "add", "origin", "https://github.com/contributor/project.git"]);
+      execFileSync("git", ["-C", directory, "remote", "add", "origin", "https://127.0.0.1/contributor/project.git"]);
       await new Promise((done, reject) => {
         server.once("error", reject);
         server.listen(0, "127.0.0.1", done);

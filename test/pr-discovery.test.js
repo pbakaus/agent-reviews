@@ -25,6 +25,13 @@ describe("branch repository detection", () => {
     "git@github.com:contributor/project.git", "https://github.com/contributor/project.git",
     "ssh://git@github.com/contributor/project.git", "http://proxy/git/contributor/project",
   ])("supports remote URL %s", (url) => expect(parseRemote(url)).toEqual(fork));
+  it.each(["git@github.example.com:contributor/project.git", "https://github.example.com/contributor/project.git", "ssh://git@github.example.com:2222/contributor/project.git"])("supports configured enterprise host %s", (url) => {
+    expect(parseRemote(url, "https://github.example.com/api/v3")).toEqual(fork);
+  });
+  it("does not query repositories from unrelated hosts on the configured API", () => {
+    expect(parseRemote("https://gitlab.com/contributor/project", "https://api.github.com")).toBeNull();
+    expect(parseRemote("git@github.com:contributor/project.git", "https://github.example.com/api/v3")).toBeNull();
+  });
   it("uses origin when a branch has no tracking configuration", () => {
     expect(getBranchContext(gitFixture()).headRepo).toEqual(fork);
   });
