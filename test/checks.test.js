@@ -79,6 +79,31 @@ describe('waitForChecks', () => {
     expect(elapsed()).toBeGreaterThanOrEqual(45);
   });
 
+  it('restarts the settle window when a check appears already finished between polls', async () => {
+    const { deps, elapsed } = scripted([
+      { runs: [ci] },
+      { runs: [ci] },
+      { runs: [ci, run('late', 'completed', 'success')] },
+    ]);
+    const result = await waitForChecks(deps, { interval: 15 });
+    expect(result.checks.passed.map((c) => c.name)).toEqual(['CI', 'late']);
+    expect(elapsed()).toBeGreaterThanOrEqual(30 + 30);
+  });
+
+  it('names expected checks that never came when it times out', async () => {
+    const { deps } = scripted([{ runs: [run('CI', 'queued')] }]);
+    const result = await waitForChecks(deps, { interval: 15, timeout: 60, expect: ['Greptile Review'] });
+    expect([result.outcome, result.absent]).toEqual(['timeout', ['Greptile Review']]);
+  });
+
+  it('keeps waiting for an expected reviewer that is the only check', async () => {
+    const polls = Array.from({ length: 20 }, () => ({ runs: [] }));
+    polls.push({ runs: [run('Greptile Review', 'completed', 'success')] });
+    const { deps } = scripted(polls);
+    const result = await waitForChecks(deps, { interval: 15, expect: ['Greptile Review'] });
+    expect(result.outcome).toBe('passed');
+  });
+
   it('follows a new push and reports on the new head', async () => {
     const { deps } = scripted([
       { sha: 'old', runs: [run('CI', 'in_progress')] },

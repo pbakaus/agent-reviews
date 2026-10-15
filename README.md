@@ -196,12 +196,12 @@ Each comment displays its reply status:
 | Exit code | Meaning |
 |---|---|
 | 0 | Every check passed and no comment waits |
-| 1 | A check failed, an expected check never reported, or a comment waits |
+| 1 | A check failed, an expected check never reported, or an inline review comment waits |
 | 2 | The PR conflicts with its base branch |
 | 3 | Timed out with checks still running |
 | 4 | No check registered on the commit |
 
-Summary comments from review bots (Greptile, Copilot, CodeRabbit and others) are not counted as findings.
+Summary comments from review bots (Greptile, Copilot, CodeRabbit and others) are not counted as findings. PR-level comments (issue comments, review bodies) are listed but never change the exit code, since they have no thread to reply in and would otherwise hold every run at 1.
 
 ### Watch mode
 

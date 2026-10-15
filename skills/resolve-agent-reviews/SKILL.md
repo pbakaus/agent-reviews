@@ -126,17 +126,17 @@ Repeat until a pass exits 0:
 
 Add `--expect "<check name>"` for each reviewer that registers its check late (for example one that starts only after a preview deploys), so the wait does not end before it reports. Expected checks are not waited for on a draft PR, since review bots usually skip drafts.
 
-**6b.** Read the report. The first line names the commit and the outcome; below it are failed checks with links, expected checks that never reported, and unanswered comments. The exit code says what to do:
+**6b.** Read the report. The first line names the commit and the outcome; below it are failed checks with links, expected checks that never reported, unanswered inline comments, and PR-level comments. PR-level comments (issue comments, review summaries) have no thread to reply in, so they are listed on every run: process only IDs you have not handled in this run. The exit code says what to do:
 
 - **0**: every check passed and no comment waits. Move to the Summary Report.
-- **1**: a check failed, an expected check never reported, or comments wait. Process comments exactly as in Phase 1, Steps 3-5 (evaluate, fix, commit, push, reply). A failed check is a finding too: read its log (`gh run view <id> --log-failed`), fix it, commit and push. Then **go back to Step 6a**. An expected check that never reported goes in the Summary Report.
+- **1**: a check failed, an expected check never reported, or inline comments wait. Process comments exactly as in Phase 1, Steps 3-5 (evaluate, fix, commit, push, reply). A failed check is a finding too: read its log (`gh run view <id> --log-failed` for GitHub Actions; for a review bot or an external status, open its link), fix it, commit and push. Then **go back to Step 6a**. If the only problem is an expected check that never reported, do not wait again: name it in the Summary Report and stop.
 - **2**: the PR conflicts with its base branch, so CI will not run. Merge or rebase the base branch, push, and go back to Step 6a.
 - **3**: timed out with checks still running (default 30 minutes; `--timeout <seconds>`). Report which checks are pending.
 - **4**: no check registered on the commit. Report it; the repository may have no CI for this branch.
 
 If you push while it waits, it follows the new head commit on its own.
 
-A reviewer that posts without a check (Copilot, for example) is the one case for the comment watcher: after a clean `--wait-checks`, run `npx agent-reviews --watch --bots-only --unanswered --timeout 180` once and process anything it returns.
+A reviewer that posts without a check (Copilot, for example) is the one case for the comment watcher. After a clean `--wait-checks`, run `npx agent-reviews --watch --bots-only --unanswered --timeout 180` once. If it returns findings, process them as in Phase 1, Steps 3-5, and **go back to Step 6a**, so the new commit's checks are waited for too.
 
 ---
 

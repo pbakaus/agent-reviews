@@ -276,7 +276,7 @@ ${colors.bright}Wait for Checks:${colors.reset}
   -i, --interval     Poll interval in seconds (default: 15)
   --timeout          Give up after N seconds (default: 1800)
   Exit codes: 0 all passed and no comment waits, 1 a check failed, an expected
-  check never came or a comment waits, 2 conflict, 3 timeout, 4 no checks.
+  check never came or an inline comment waits, 2 conflict, 3 timeout, 4 no checks.
 
 ${colors.bright}Examples:${colors.reset}
   agent-reviews                              # Show all comments
@@ -666,8 +666,14 @@ async function main() {
       processComments(await fetchPRComments(owner, repo, prNumber, token, proxyFetch)),
       { ...options, filter }
     );
+    // Only inline review comments can be answered in a thread; PR-level ones stay
+    // "unanswered" forever, so they are listed but never hold the exit code.
+    if (result.code === EXIT.ok && comments.some((c) => c.type === "review_comment")) {
+      result.code = EXIT.attention;
+      result.outcome = "comments";
+    }
     console.log(formatCheckReport(result, comments, { ...options, filter }));
-    process.exitCode = result.code === EXIT.ok && comments.length ? EXIT.attention : result.code;
+    process.exitCode = result.code;
     return;
   }
 
