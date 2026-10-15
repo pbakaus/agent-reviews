@@ -1,6 +1,6 @@
 {
   "name": "agent-reviews",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "CLI and agent skills for managing GitHub PR review comments. List, filter, reply, and watch for bot findings.",
   "license": "MIT",
   "author": "Paul Bakaus",

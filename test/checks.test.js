@@ -120,11 +120,24 @@ describe('waitForChecks', () => {
     expect([result.sha, result.outcome]).toEqual(['new', 'failed']);
   });
 
-  it('rides out a few failed requests but gives up when the API stays down', async () => {
+  it('rides out a network drop of a few minutes but gives up when the API stays down', async () => {
     const { deps } = scripted([{ runs: [ci] }]);
     let calls = 0;
     const flaky = { ...deps, checks: async (sha) => { if (++calls <= 2) throw new Error('fetch failed'); return deps.checks(sha); } };
     expect((await waitForChecks(flaky, { interval: 15 })).outcome).toBe('passed');
+    let drop = 0;
+    const blip = { ...deps, checks: async (sha) => { if (++drop <= 8) throw new Error('fetch failed'); return deps.checks(sha); } };
+    expect((await waitForChecks(blip, { interval: 15 })).outcome).toBe('passed'); // two minutes without the API
+    let slept = 0;
+    const denied = { ...deps, sleep: async () => { slept++; }, checks: async () => { throw Object.assign(new Error('API request failed: 401'), { status: 401 }); } };
+    await expect(waitForChecks(denied, { interval: 15 })).rejects.toThrow('401');
+    expect(slept).toBe(0); // a permanent error is not waited out
+    let limited = 0;
+    const rateLimited = { ...deps, checks: async (sha) => {
+      if (++limited <= 2) throw Object.assign(new Error('API request failed: 403'), { status: 403, rateLimited: true });
+      return deps.checks(sha);
+    } };
+    expect((await waitForChecks(rateLimited, { interval: 15 })).outcome).toBe('passed'); // a rate limit is waited out
     const down = { ...deps, checks: async () => { throw new Error('fetch failed'); } };
     await expect(waitForChecks(down, { interval: 15 })).rejects.toThrow('fetch failed');
   });

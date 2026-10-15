@@ -5,6 +5,16 @@
 		<div class="changelog-list">
 			<div class="changelog-entry">
 				<div class="changelog-version-header">
+					<span class="changelog-version">v1.3.0</span>
+					<span class="changelog-date">October 16, 2026</span>
+				</div>
+				<ul class="changelog-items">
+					<li>The bot and combined skills stop after a second round of fixes when new findings keep landing on lines the earlier fixes changed, and hand the rest to the user instead of patching on.</li>
+					<li><code>--wait-checks</code> rides out network drops of up to five minutes, and retries the PR lookup and the comment fetch through short drops.</li>
+				</ul>
+			</div>
+			<div class="changelog-entry">
+				<div class="changelog-version-header">
 					<span class="changelog-version">v1.2.0</span>
 					<span class="changelog-date">October 15, 2026</span>
 				</div>
