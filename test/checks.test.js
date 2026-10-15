@@ -104,6 +104,22 @@ describe('waitForChecks', () => {
     expect(result.outcome).toBe('passed');
   });
 
+  it('does not report on a commit that was replaced while its checks were read', async () => {
+    let head = 'old';
+    const deps = {
+      pr: async () => ({ state: 'open', draft: false, mergeable: true, number: 7, head: { sha: head } }),
+      checks: async (sha) => {
+        if (sha === 'old' && t >= 30000) head = 'new'; // pushed during the final read
+        return { runs: [sha === 'old' ? ci : run('CI', 'completed', 'failure')], statuses: [] };
+      },
+      now: () => t,
+      sleep: async (s) => { t += s * 1000; },
+    };
+    let t = 0;
+    const result = await waitForChecks(deps, { interval: 15 });
+    expect([result.sha, result.outcome]).toEqual(['new', 'failed']);
+  });
+
   it('follows a new push and reports on the new head', async () => {
     const { deps } = scripted([
       { sha: 'old', runs: [run('CI', 'in_progress')] },
