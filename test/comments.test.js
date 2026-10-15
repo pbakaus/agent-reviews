@@ -307,6 +307,13 @@ describe("isMetaComment", () => {
   });
 
   // CodeRabbit
+  it("filters the Greptile PR summary but not its inline findings", () => {
+    const summary = '<!-- greptile_summary -->\n\n<h2>Confidence Score: 5/5</h2>';
+    expect(isMetaComment("greptile-apps[bot]", summary)).toBe(true);
+    expect(isMetaComment("greptile-apps", summary)).toBe(true);
+    expect(isMetaComment("greptile-apps[bot]", "**P1** `fetch` can return null here")).toBe(false);
+  });
+
   it("filters CodeRabbit walkthrough/summary comments", () => {
     expect(
       isMetaComment(

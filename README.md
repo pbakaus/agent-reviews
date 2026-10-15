@@ -98,6 +98,9 @@ agent-reviews --json
 # Watch for new comments (polls every 30s, exits after 10 min idle)
 agent-reviews --watch --bots-only
 
+# After a push: wait for the head commit's checks, then print failures and unanswered bot comments
+agent-reviews --wait-checks --bots-only --expect "Greptile Review"
+
 # Target a specific PR (otherwise auto-detects from branch)
 agent-reviews --pr 42
 ```
@@ -121,8 +124,10 @@ Unknown options, unexpected arguments, and invalid numeric values fail before au
 | `--ignore-author <login>` | | Exclude an author from listing and watching; repeat for multiple authors |
 | `--expanded` | `-e` | Show full detail for each listed comment |
 | `--watch` | `-w` | Poll for new comments |
-| `--interval <sec>` | `-i` | Poll interval in seconds (default: 30) |
-| `--timeout <sec>` | | Inactivity timeout in seconds (default: 600) |
+| `--wait-checks` | | Wait for the head commit's checks, then report failures and unanswered comments |
+| `--expect <name>` | | With `--wait-checks`: a check that must report before the wait ends; repeatable |
+| `--interval <sec>` | `-i` | Poll interval in seconds (default: 30, or 15 with `--wait-checks`) |
+| `--timeout <sec>` | | Inactivity timeout in seconds (default: 600); with `--wait-checks`, the total wait (default: 1800) |
 
 To hide workflow status comments, use `agent-reviews --ignore-author 'github-actions[bot]'`. Repeat the flag for multiple authors, including with `--watch`. Matching is case-insensitive and uses the full GitHub login, including `[bot]` when present. Excluded authors' top-level findings are hidden, but their replies remain visible as context in other authors' threads. Explicit `--detail` lookups and replies are unaffected. No authors are excluded by default.
 
@@ -135,7 +140,7 @@ The skills automate the full PR review resolution workflow:
 3. Fix real issues and run lint/type-check
 4. Dismiss false positives with an explanation
 5. Reply to every comment with the outcome
-6. Watch for new comments and repeat until quiet
+6. Wait for the head commit's checks (`--wait-checks`) and repeat until a pass is clean
 7. Report a summary of all actions taken
 
 ### Skill behavior
@@ -144,7 +149,7 @@ The skills automate the full PR review resolution workflow:
 - **False positives** get replied with `Won't fix: {reason}`
 - **Uncertain findings** prompt the user for guidance
 - All fixes are batched into a single commit before polling begins
-- Watch mode loops until no new comments appear for 10 minutes
+- The bot and combined skills loop until every check on the head commit has passed and no comment waits; the human-review skill watches until reviewers go quiet
 
 ## How It Works
 
@@ -184,6 +189,20 @@ Each comment displays its reply status:
 | `replied` | A human has replied |
 | `bot replied` | Only bots have replied |
 
+### Waiting for checks
+
+`--wait-checks` polls the PR's head commit until every check run and commit status has finished, then prints one line with the outcome, the failed checks with links, any expected check that never reported, and the unanswered comments (with the usual filters). It follows new pushes to the PR, stops at once when the PR conflicts with its base branch (no CI runs then), and waits 30 seconds after the last check finishes for reviewers that register late. Name a reviewer with `--expect` when it registers much later, for example only after a preview deploys; expected checks are not waited for on drafts.
+
+| Exit code | Meaning |
+|---|---|
+| 0 | Every check passed and no comment waits |
+| 1 | A check failed, an expected check never reported, or an inline review comment waits |
+| 2 | The PR conflicts with its base branch |
+| 3 | Timed out with checks still running |
+| 4 | No check registered on the commit |
+
+Summary comments from review bots (Greptile, Copilot, CodeRabbit and others) are not counted as findings. PR-level comments (issue comments, review bodies) are listed but never change the exit code, since they have no thread to reply in and would otherwise hold every run at 1.
+
 ### Watch mode
 
 Polls the GitHub API at a configurable interval and reports new comments as they appear. Outputs both formatted text and JSON for AI agent consumption. Exits automatically after a configurable inactivity timeout (default: 10 minutes).
@@ -191,6 +210,12 @@ Polls the GitHub API at a configurable interval and reports new comments as they
 Reply files preserve Markdown and newlines exactly. For multiline or complex replies, write the text to a file and pass `--body-file body.md` to avoid shell quoting and command substitution. Both absolute and relative paths are supported; relative paths are resolved from the current directory. Prefer uniquely named temporary files outside the repository so later commits cannot accidentally include reply text. Use either a positional message or `--body-file`, not both; empty or whitespace-only replies are rejected. The flag works with `--resolve` and `--json`.
 
 ## Changelog
+
+### 1.2.0 (October 15, 2026)
+
+- Wait for a PR's checks with `--wait-checks`: follows new pushes, stops on a conflict with the base branch, waits for late reviewers named with `--expect`, and prints only failed checks and unanswered comments, with an exit code for each outcome.
+- The bot and combined skills wait with `--wait-checks` instead of a quiet window.
+- Treat Greptile's PR summary as a summary, not a finding.
 
 ### 1.1.0 (September 10, 2026)
 
