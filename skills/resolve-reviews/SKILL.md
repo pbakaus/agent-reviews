@@ -6,7 +6,7 @@ compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
 allowed-tools: Bash(npx agent-reviews *) Bash(pnpm dlx agent-reviews *) Bash(yarn dlx agent-reviews *) Bash(bunx agent-reviews *) Bash(git config *) Bash(git add *) Bash(git commit *) Bash(git push *)
 metadata:
   author: pbakaus
-  version: "1.2.0"
+  version: "1.3.0"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
@@ -166,6 +166,8 @@ Add `--expect "<check name>"` for each reviewer that registers its check late (f
 - **4**: no check registered on the commit. Report it; the repository may have no CI for this branch.
 
 If you push while it waits, it follows the new head commit on its own.
+
+**Round cap.** Each pass through 6b that ends in a fix push is a round. If new findings keep landing on lines your own earlier fix commits changed, each fix is opening the next edge case, and more patches will not converge. After the second such round, stop: do not push another fix. Report the remaining findings to the user together with what each fix round changed, and suggest reviewing the design as a whole (for example with an adversarial design review) before continuing. Findings on code the earlier fixes did not touch do not count toward the cap.
 
 A reviewer that posts without a check (Copilot, for example) is the one case for the comment watcher. After a clean `--wait-checks`, run `npx agent-reviews --watch --unanswered --timeout 180` once. If it returns findings, process them as in Phase 1, Steps 3-5, and **go back to Step 6a**, so the new commit's checks are waited for too.
 

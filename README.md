@@ -211,6 +211,11 @@ Reply files preserve Markdown and newlines exactly. For multiline or complex rep
 
 ## Changelog
 
+### 1.3.0 (October 16, 2026)
+
+- The bot and combined skills stop after a second round of fixes when new findings keep landing on lines the earlier fixes changed, and hand the rest to the user instead of patching on.
+- `--wait-checks` rides out network drops of up to five minutes instead of five failed requests, and retries the PR lookup and the comment fetch through short drops.
+
 ### 1.2.0 (October 15, 2026)
 
 - Wait for a PR's checks with `--wait-checks`: follows new pushes, stops on a conflict with the base branch, waits for late reviewers named with `--expect`, and prints only failed checks and unanswered comments, with an exit code for each outcome.

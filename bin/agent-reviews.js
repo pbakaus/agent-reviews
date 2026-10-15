@@ -492,6 +492,19 @@ function prepareReply(options) {
   }
 }
 
+/** Retries a request through a short network drop (8 tries, 15 seconds apart); other errors fail at once. */
+async function retrying(fn, tries = 8, delay = 15) {
+  for (let i = 1; ; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      const network = error?.message === "fetch failed" || /ETIMEDOUT|ECONNRESET|ENOTFOUND|EAI_AGAIN/.test(error?.cause?.code || "");
+      if (!network || i >= tries) throw error;
+      await sleep(delay);
+    }
+  }
+}
+
 async function main() {
   const options = parseArgs();
 
@@ -533,12 +546,12 @@ async function main() {
 
   if (!prNumber) {
     const context = getBranchContext();
-    const match = await discoverPullRequest(
+    const match = await retrying(() => discoverPullRequest(
       context,
       process.env.GH_REPO ? repoInfo : null,
       token,
       proxyFetch
-    );
+    ));
     if (!match) {
       throw new Error(`No open PR found for branch '${context.headBranch}'`);
     }
@@ -663,7 +676,7 @@ async function main() {
     );
     const filter = options.filter || "unanswered";
     const comments = filterComments(
-      processComments(await fetchPRComments(owner, repo, prNumber, token, proxyFetch)),
+      processComments(await retrying(() => fetchPRComments(owner, repo, prNumber, token, proxyFetch))),
       { ...options, filter }
     );
     // Only inline review comments can be answered in a thread; PR-level ones stay
