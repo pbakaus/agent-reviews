@@ -6,7 +6,7 @@ compatibility: Requires git, gh (GitHub CLI), and Node.js installed.
 allowed-tools: Bash(npx agent-reviews *) Bash(pnpm dlx agent-reviews *) Bash(yarn dlx agent-reviews *) Bash(bunx agent-reviews *) Bash(git config *) Bash(git add *) Bash(git commit *) Bash(git push *)
 metadata:
   author: pbakaus
-  version: "1.1.0"
+  version: "1.2.0"
   homepage: https://github.com/pbakaus/agent-reviews
 ---
 
@@ -145,31 +145,29 @@ Run `npx agent-reviews --reply <comment_id> "Skipped per user request" --resolve
 
 ---
 
-## Phase 2: POLL FOR NEW COMMENTS (loop until quiet)
+## Phase 2: WAIT FOR THE HEAD COMMIT'S CHECKS (loop until clean)
 
-The watcher exits immediately when new comments are found (after a 5s grace period to catch batch posts). This means you run it in a loop: start watcher, process any comments it returns, restart watcher, repeat until the watcher times out with no new comments.
+Most review bots (Greptile, Cursor Bugbot, CodeRabbit and others) report as a check on the commit, beside CI, so a review is finished when the commit's checks are. `--wait-checks` waits for exactly that, then prints only what needs you.
 
-### Step 6: Start Watcher Loop
+### Step 6: Wait, then act on the report
 
-Repeat the following until the watcher exits with no new comments:
+Repeat until a pass exits 0:
 
-**6a.** Launch the watcher in the background:
+**6a.** Run `npx agent-reviews --wait-checks --unanswered` as a background task, and carry on with other work until it finishes. Never poll with `gh pr checks --watch`, sleep loops or repeated listings.
 
-Run `npx agent-reviews --watch --unanswered` as a background task.
+Add `--expect "<check name>"` for each reviewer that registers its check late (for example one that starts only after a preview deploys), so the wait does not end before it reports. Expected checks are not waited for on a draft PR, since review bots usually skip drafts.
 
-At startup, reconcile `EXISTING COMMENTS` against IDs already handled in this run and the latest replies from `--detail`; do not replay an already recorded outcome. The baseline can include genuinely unhandled findings submitted between Phase 1 and watcher startup. If it does, stop the watcher, process those findings through Steps 3-5, and restart it. Track non-threadable comments already skipped in this run so they do not cause a restart loop. Once the baseline is reconciled, process the IDs reported as new when the watcher exits with `EXITING WITH NEW COMMENTS`.
+**6b.** Read the report. The first line names the commit and the outcome; below it are failed checks with links, expected checks that never reported, and unanswered comments. The exit code says what to do:
 
-**6b.** Wait for the background command to complete (default 10 minutes; override with `--timeout`).
+- **0**: every check passed and no comment waits. Move to the Summary Report.
+- **1**: a check failed, an expected check never reported, or comments wait. Process comments exactly as in Phase 1, Steps 3-5 (evaluate, fix, commit, push, reply). A failed check is a finding too: read its log (`gh run view <id> --log-failed`), fix it, commit and push. Then **go back to Step 6a**. An expected check that never reported goes in the Summary Report.
+- **2**: the PR conflicts with its base branch, so CI will not run. Merge or rebase the base branch, push, and go back to Step 6a.
+- **3**: timed out with checks still running (default 30 minutes; `--timeout <seconds>`). Report which checks are pending.
+- **4**: no check registered on the commit. Report it; the repository may have no CI for this branch.
 
-**6c.** Check the output:
+If you push while it waits, it follows the new head commit on its own.
 
-- **If new comments were found** (output contains `EXITING WITH NEW COMMENTS`):
-  1. Use `--detail <id>` to read each new comment's full detail
-  2. Process them exactly as in Phase 1, Steps 3-5 (evaluate, fix, commit, push, reply)
-  3. **Go back to Step 6a** to restart the watcher
-
-- **If no new comments** (output contains `WATCH COMPLETE`):
-  Stop looping and move to the Summary Report.
+A reviewer that posts without a check (Copilot, for example) is the one case for the comment watcher: after a clean `--wait-checks`, run `npx agent-reviews --watch --unanswered --timeout 180` once and process anything it returns.
 
 ---
 
@@ -196,7 +194,7 @@ After both phases complete, provide a summary:
 - {description} - Fixed in {commit}
 
 ### Status
-All findings addressed. Watch completed.
+All findings addressed. Every check on the head commit passed.
 ```
 
 ## Important Notes

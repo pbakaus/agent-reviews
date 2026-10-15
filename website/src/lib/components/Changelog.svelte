@@ -5,6 +5,17 @@
 		<div class="changelog-list">
 			<div class="changelog-entry">
 				<div class="changelog-version-header">
+					<span class="changelog-version">v1.2.0</span>
+					<span class="changelog-date">October 15, 2026</span>
+				</div>
+				<ul class="changelog-items">
+					<li>Wait for a PR's checks with <code>--wait-checks</code>: follows new pushes, stops on a conflict with the base branch, waits for late reviewers named with <code>--expect</code>, and prints only failed checks and unanswered comments.</li>
+					<li>The bot and combined skills wait with <code>--wait-checks</code> instead of a quiet window.</li>
+					<li>Treat Greptile's PR summary as a summary, not a finding.</li>
+				</ul>
+			</div>
+			<div class="changelog-entry">
+				<div class="changelog-version-header">
 					<span class="changelog-version">v1.1.0</span>
 					<span class="changelog-date">September 10, 2026</span>
 				</div>

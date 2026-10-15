@@ -15,6 +15,7 @@
  *   agent-reviews --detail <id>          # Show full detail (no truncation)
  *   agent-reviews --json                 # Output as JSON for scripting
  *   agent-reviews --watch                # Watch for new comments (poll mode)
+ *   agent-reviews --wait-checks          # Wait for the head commit's checks, then report
  *
  * Options:
  *   --pr <number>    Target specific PR (auto-detects from branch)
@@ -44,7 +45,10 @@ const {
   formatComment,
   formatDetailedComment,
   formatOutput,
+  formatCheckReport,
 } = require("../lib/format");
+
+const { EXIT, fetchPullRequest, fetchCommitChecks, waitForChecks } = require("../lib/checks");
 
 const proxyFetch = getProxyFetch();
 
@@ -72,6 +76,7 @@ function parseArgs(args = process.argv.slice(2)) {
     watch: false,
     watchInterval: 30,
     watchTimeout: 600,
+    expect: [],
   };
 
   const positionals = [];
@@ -81,7 +86,7 @@ function parseArgs(args = process.argv.slice(2)) {
 
   function setCommand(command) {
     if (explicitCommand !== null) {
-      throw new Error("Use only one of --reply, --detail, or --watch");
+      throw new Error("Use only one of --reply, --detail, --watch, or --wait-checks");
     }
     explicitCommand = command;
     result.command = command;
@@ -165,6 +170,16 @@ function parseArgs(args = process.argv.slice(2)) {
         setCommand("watch");
         result.watch = true;
         break;
+      case "--wait-checks":
+        setCommand("wait-checks");
+        break;
+      case "--expect": {
+        const name = args[i + 1];
+        if (!name || name.startsWith("-")) throw new Error("--expect requires a check name");
+        result.expect.push(name);
+        i++;
+        break;
+      }
       case "--interval":
       case "-i":
         result.watchInterval = positiveInteger(valueFor("--interval", "seconds"), "--interval");
@@ -202,6 +217,12 @@ function parseArgs(args = process.argv.slice(2)) {
     throw new Error(`Unexpected argument '${positionals[0]}'`);
   }
   if (result.resolve && result.command !== "reply") throw new Error("--resolve requires --reply");
+  if (result.expect.length && result.command !== "wait-checks") throw new Error("--expect requires --wait-checks");
+  if (result.command === "wait-checks") {
+    // A CI round takes minutes, not seconds; poll faster and allow longer than comment watching.
+    if (!supplied.has("--interval")) result.watchInterval = 15;
+    if (!supplied.has("--timeout")) result.watchTimeout = 1800;
+  }
   if (result.botsOnly && result.humansOnly) throw new Error("Use either --bots-only or --humans-only, not both");
 
   return result;
@@ -246,6 +267,17 @@ ${colors.bright}Watch Mode:${colors.reset}
   -i, --interval     Poll interval in seconds (default: 30)
   --timeout          Exit after N seconds of inactivity (default: 600)
 
+${colors.bright}Wait for Checks:${colors.reset}
+      --wait-checks  Wait until every check on the PR's head commit has finished,
+                     then print failed checks and unanswered comments. Follows
+                     new pushes; stops early on a conflict with the base branch.
+      --expect <name>  A check that must report before it counts as done, e.g. a
+                     review bot that registers late (repeatable; ignored on drafts)
+  -i, --interval     Poll interval in seconds (default: 15)
+  --timeout          Give up after N seconds (default: 1800)
+  Exit codes: 0 all passed and no comment waits, 1 a check failed, an expected
+  check never came or a comment waits, 2 conflict, 3 timeout, 4 no checks.
+
 ${colors.bright}Examples:${colors.reset}
   agent-reviews                              # Show all comments
   agent-reviews -u                           # Show unresolved only
@@ -258,6 +290,7 @@ ${colors.bright}Examples:${colors.reset}
   agent-reviews --json | jq '.[]'            # Pipe to jq
   agent-reviews --watch --bots-only          # Watch for new bot comments
   agent-reviews -w -i 15 --timeout 300       # Poll every 15s, exit after 5 min
+  agent-reviews --wait-checks --bots-only    # After a push: wait, then failures + bot comments
 
 ${colors.bright}Authentication:${colors.reset}
   Set GITHUB_TOKEN env var, or use 'gh auth login' (gh CLI).
@@ -613,6 +646,28 @@ async function main() {
       console.log(formatDetailedComment(comment));
     }
 
+    return;
+  }
+
+  // Handle wait-checks command
+  if (options.command === "wait-checks") {
+    const { owner, repo } = repoInfo;
+    const result = await waitForChecks(
+      {
+        pr: () => fetchPullRequest(owner, repo, prNumber, token, proxyFetch),
+        checks: (sha) => fetchCommitChecks(owner, repo, sha, token, proxyFetch),
+        now: Date.now,
+        sleep,
+      },
+      { interval: options.watchInterval, timeout: options.watchTimeout, expect: options.expect }
+    );
+    const filter = options.filter || "unanswered";
+    const comments = filterComments(
+      processComments(await fetchPRComments(owner, repo, prNumber, token, proxyFetch)),
+      { ...options, filter }
+    );
+    console.log(formatCheckReport(result, comments, { ...options, filter }));
+    process.exitCode = result.code === EXIT.ok && comments.length ? EXIT.attention : result.code;
     return;
   }
 
