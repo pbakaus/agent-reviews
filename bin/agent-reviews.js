@@ -668,7 +668,7 @@ async function main() {
     );
     // Only inline review comments can be answered in a thread; PR-level ones stay
     // "unanswered" forever, so they are listed but never hold the exit code.
-    if (result.code === EXIT.ok && comments.some((c) => c.type === "review_comment")) {
+    if (result.outcome === "passed" && comments.some((c) => c.type === "review_comment")) {
       result.code = EXIT.attention;
       result.outcome = "comments";
     }
