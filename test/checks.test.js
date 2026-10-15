@@ -120,6 +120,15 @@ describe('waitForChecks', () => {
     expect([result.sha, result.outcome]).toEqual(['new', 'failed']);
   });
 
+  it('rides out a few failed requests but gives up when the API stays down', async () => {
+    const { deps } = scripted([{ runs: [ci] }]);
+    let calls = 0;
+    const flaky = { ...deps, checks: async (sha) => { if (++calls <= 2) throw new Error('fetch failed'); return deps.checks(sha); } };
+    expect((await waitForChecks(flaky, { interval: 15 })).outcome).toBe('passed');
+    const down = { ...deps, checks: async () => { throw new Error('fetch failed'); } };
+    await expect(waitForChecks(down, { interval: 15 })).rejects.toThrow('fetch failed');
+  });
+
   it('follows a new push and reports on the new head', async () => {
     const { deps } = scripted([
       { sha: 'old', runs: [run('CI', 'in_progress')] },
