@@ -128,6 +128,10 @@ describe('waitForChecks', () => {
     let drop = 0;
     const blip = { ...deps, checks: async (sha) => { if (++drop <= 8) throw new Error('fetch failed'); return deps.checks(sha); } };
     expect((await waitForChecks(blip, { interval: 15 })).outcome).toBe('passed'); // two minutes without the API
+    let slept = 0;
+    const denied = { ...deps, sleep: async () => { slept++; }, checks: async () => { throw Object.assign(new Error('API request failed: 401'), { status: 401 }); } };
+    await expect(waitForChecks(denied, { interval: 15 })).rejects.toThrow('401');
+    expect(slept).toBe(0); // a permanent error is not waited out
     const down = { ...deps, checks: async () => { throw new Error('fetch failed'); } };
     await expect(waitForChecks(down, { interval: 15 })).rejects.toThrow('fetch failed');
   });
