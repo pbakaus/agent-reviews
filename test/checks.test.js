@@ -132,6 +132,12 @@ describe('waitForChecks', () => {
     const denied = { ...deps, sleep: async () => { slept++; }, checks: async () => { throw Object.assign(new Error('API request failed: 401'), { status: 401 }); } };
     await expect(waitForChecks(denied, { interval: 15 })).rejects.toThrow('401');
     expect(slept).toBe(0); // a permanent error is not waited out
+    let limited = 0;
+    const rateLimited = { ...deps, checks: async (sha) => {
+      if (++limited <= 2) throw Object.assign(new Error('API request failed: 403'), { status: 403, rateLimited: true });
+      return deps.checks(sha);
+    } };
+    expect((await waitForChecks(rateLimited, { interval: 15 })).outcome).toBe('passed'); // a rate limit is waited out
     const down = { ...deps, checks: async () => { throw new Error('fetch failed'); } };
     await expect(waitForChecks(down, { interval: 15 })).rejects.toThrow('fetch failed');
   });
